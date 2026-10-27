@@ -29,6 +29,7 @@ id_ed25519.pub
 # 2. Banco de Dados, Dumps e Dados Pessoais
 # ------------------------------------------------------------------------------
 *.sql
+!deploy/*.sql
 *.sql.gz
 *.sql.age
 *.dump

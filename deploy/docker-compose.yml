@@ -1,0 +1,41 @@
+# ==============================================================================
+# docker-compose.yml - Infraestrutura Local e Homelab
+# ==============================================================================
+
+services:
+  # ----------------------------------------------------------------------------
+  # Banco de Dados Relacional - PostgreSQL 16
+  # ----------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: financeiro_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
+      POSTGRES_DB: ${POSTGRES_DB:-financeiro_db}
+      TZ: UTC
+    ports:
+      # Exposto na porta 5432 do host apenas para desenvolvimento local
+      # No Homelab de produção, pode ser restrito apenas à rede interna Docker
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres_user} -d ${POSTGRES_DB:-financeiro_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - finance_internal_net
+
+volumes:
+  postgres_data:
+    name: financeiro_postgres_data
+
+networks:
+  finance_internal_net:
+    name: finance_internal_net
+    driver: bridge

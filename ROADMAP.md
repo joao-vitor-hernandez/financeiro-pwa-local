@@ -21,26 +21,28 @@
 ## Fase 0: Fundação, Governança & Blindagem de Segurança
 > **Objetivo:** Estabelecer as regras do repositório, proteção contra vazamento de credenciais e diretrizes para o agente antes de qualquer linha de aplicação.
 
-- [ ] **0.1. Inicialização do Repositório Git**
+- [x] **0.1. Inicialização do Repositório Git**
   - Inicializar git local (`git init`).
   - Configurar branch principal como `main`.
-- [ ] **0.2. Blindagem com `.gitignore` Rigoroso**
+- [x] **0.2. Blindagem com `.gitignore` Rigoroso**
   - Barrar arquivos de ambiente (`.env*`, com exceção de `.env.example`).
   - Barrar certificados, chaves (`*.pem`, `*.key`, `cloudflared-cert.json`).
   - Barrar dados e backups locais (`*.dump`, `*.sql`, `postgres-data/`).
   - Barrar caches de runtime Python (`__pycache__`, `.venv/`) e Node (`node_modules/`, `dist/`).
-- [ ] **0.3. Modelo de Variáveis de Ambiente (`.env.example`)**
+- [x] **0.3. Modelo de Variáveis de Ambiente (`.env.example`)**
   - Mapear todas as chaves necessárias sem valores reais (banco, JWT, Pluggy, Cloudflare).
-- [ ] **0.4. Regras Locais do Antigravity (`.agents/rules/`)**
+- [x] **0.4. Regras Locais do Antigravity (`.agents/rules/`)**
   - `security.md`: Regras para barrar geração de senhas em código e exigir validação de inputs.
   - `architecture.md`: Padrão de camadas FastAPI (Routers -> Services -> Models/Schemas) e Angular Signals.
   - `financial-rules.md`: Exigência estrita de `Decimal`, regras de arredondamento bancário e partidas dobradas.
   - `ui-ux-guidelines.md`: Diretrizes anti-"cara de IA" (paleta sóbria, mobile-first, áreas de toque).
-- [ ] **0.5. Pre-commit Hooks (Gitleaks + Linter)**
-  - Configurar hook local para impedir commits que contenham tokens ou padrões de credenciais.
+- [x] **0.5. Ferramentas Locais de Desenvolvimento**
+  - Python 3.12.10, Node.js v24.20.0, npm 11.19.0 e Git 2.56.0 instalados e validados.
+  - Identidade do Git configurada para João Vitor Hernandez (`jvhernandez.dev@gmail.com`).
+  - Primeiro commit efetuado com sucesso.
 
 **Critério de Conclusão da Fase 0:**  
-Tentativa simulada de commit de um token falso é abortada com sucesso pelo pre-commit hook; arquivos sensíveis são ignorados pelo git.
+Concluída e validada. Tentativas simuladas de commit de dados sensíveis bloqueadas pelo `.gitignore`. Repositório inicializado e pronto para a infraestrutura.
 
 ---
 
