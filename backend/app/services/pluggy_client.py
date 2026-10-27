@@ -1,3 +1,4 @@
+import logging
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
@@ -5,6 +6,8 @@ import httpx
 from fastapi import HTTPException, status
 
 from app.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 
 class PluggyClient:
@@ -49,9 +52,14 @@ class PluggyClient:
                     json={"clientId": self.client_id, "clientSecret": self.client_secret},
                 )
                 if res.status_code != 200:
+                    logger.error(
+                        "Falha de autenticação na Pluggy: status=%d body=%s",
+                        res.status_code,
+                        res.text,
+                    )
                     raise HTTPException(
                         status_code=status.HTTP_502_BAD_GATEWAY,
-                        detail=f"Falha de autenticação na Pluggy: {res.text}",
+                        detail="Erro de conexão com a Pluggy",
                     )
 
                 data = res.json()
@@ -60,9 +68,10 @@ class PluggyClient:
                 self._token_expires_at = now + timedelta(minutes=105)
                 return self._cached_api_key
             except httpx.RequestError as exc:
+                logger.error("Erro de rede com a Pluggy: %s", exc)
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                    detail=f"Erro de conexão com o serviço da Pluggy: {exc}",
+                    detail="Erro de conexão com a Pluggy",
                 )
 
     async def fetch_accounts(self, item_id: str | None = None) -> list[dict[str, Any]]:
@@ -78,9 +87,14 @@ class PluggyClient:
         async with httpx.AsyncClient(timeout=20.0) as client:
             res = await client.get(f"{self.base_url}/accounts", headers=headers, params=params)
             if res.status_code != 200:
+                logger.error(
+                    "Erro ao consultar contas na Pluggy: status=%d body=%s",
+                    res.status_code,
+                    res.text,
+                )
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=f"Erro ao consultar contas na Pluggy: {res.text}",
+                    detail="Erro de conexão com a Pluggy",
                 )
             return res.json().get("results", [])
 
@@ -100,9 +114,14 @@ class PluggyClient:
         async with httpx.AsyncClient(timeout=30.0) as client:
             res = await client.get(f"{self.base_url}/transactions", headers=headers, params=params)
             if res.status_code != 200:
+                logger.error(
+                    "Erro ao consultar transações na Pluggy: status=%d body=%s",
+                    res.status_code,
+                    res.text,
+                )
                 raise HTTPException(
                     status_code=status.HTTP_502_BAD_GATEWAY,
-                    detail=f"Erro ao consultar transações na Pluggy: {res.text}",
+                    detail="Erro de conexão com a Pluggy",
                 )
             return res.json()
 

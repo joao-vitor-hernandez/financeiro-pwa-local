@@ -46,14 +46,14 @@ app = FastAPI(
 
 # CORS Middleware
 # Em dev: permite requisições do Angular local (http://localhost:4200)
-# Em prod: aceita seu domínio do Cloudflare Pages
+# Em prod: aceita conexões do Cloudflare Pages via regex
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:4200",
         "http://127.0.0.1:4200",
-        "https://*.pages.dev",
     ],
+    allow_origin_regex=r"^https:\/\/.*\.pages\.dev$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
