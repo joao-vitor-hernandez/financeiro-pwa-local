@@ -1,5 +1,8 @@
 # Roadmap de Engenharia: PWA de Finanças Pessoais
 
+> **Repositório Oficial:** [github.com/joao-vitor-hernandez/financeiro-pwa-local](https://github.com/joao-vitor-hernandez/financeiro-pwa-local)  
+> **Autor:** João Vitor Hernandez (<jvhernandez.dev@gmail.com>)  
+> **Licenciamento:** Proprietary / Direitos Reservados (*All Rights Reserved*). Sem licença open-source permissiva no momento para resguardo de propriedade intelectual e viabilidade de futura monetização/SaaS.  
 > **Diretriz de Execução:** Evolução gradual, modular e testável.  
 > **Regra de Ouro:** Nenhuma fase deve ser iniciada sem que os critérios de aceite e testes da fase anterior estejam validados.  
 > **Padrão de Precisão Numérica:** Proibido uso de tipos de ponto flutuante (`float`, `double`) no domínio financeiro. Obrigatório o uso de precisão arbitrária (`Decimal`/`NUMERIC(15, 2)`) e inteiros de alta capacidade (`BigInteger`/`BIGINT`/`UUIDv7`).

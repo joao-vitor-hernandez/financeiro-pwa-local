@@ -1,6 +1,9 @@
 # Especificação de Arquitetura e Engenharia: PWA de Finanças Pessoais
 
 > **Status do Documento:** Versão 1.0 (Baseline do Projeto)  
+> **Repositório Oficial:** [github.com/joao-vitor-hernandez/financeiro-pwa-local](https://github.com/joao-vitor-hernandez/financeiro-pwa-local)  
+> **Autor & Propriedade:** João Vitor Hernandez (<jvhernandez.dev@gmail.com>)  
+> **Licenciamento:** Proprietary / Direitos Reservados (*All Rights Reserved*). Sem licença aberta permissiva no momento para resguardo de propriedade intelectual e viabilidade futura de monetização como produto SaaS.  
 > **Objetivo:** Documento histórico e guia técnico para concepção, desenvolvimento, segurança e infraestrutura do sistema financeiro pessoal e portfólio fullstack.
 
 ---
