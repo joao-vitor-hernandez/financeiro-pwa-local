@@ -37,9 +37,7 @@ class Account(Base):
 
     __tablename__ = "accounts"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     type: Mapped[AccountType] = mapped_column(
         SQLEnum(AccountType, name="account_type_enum"), nullable=False
@@ -54,17 +52,13 @@ class Account(Base):
     closing_day: Mapped[int | None] = mapped_column(
         Integer, nullable=True
     )  # Dia de corte/fechamento
-    due_day: Mapped[int | None] = mapped_column(
-        Integer, nullable=True
-    )  # Dia de vencimento
+    due_day: Mapped[int | None] = mapped_column(Integer, nullable=True)  # Dia de vencimento
     credit_limit: Mapped[Decimal | None] = mapped_column(
         Numeric(precision=15, scale=2), nullable=True
     )
 
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    pluggy_account_id: Mapped[str | None] = mapped_column(
-        String(100), unique=True, nullable=True
-    )
+    pluggy_account_id: Mapped[str | None] = mapped_column(String(100), unique=True, nullable=True)
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False

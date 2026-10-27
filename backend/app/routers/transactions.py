@@ -33,12 +33,8 @@ async def list_transactions(
     return result.scalars().all()
 
 
-@router.post(
-    "", response_model=list[TransactionResponse], status_code=status.HTTP_201_CREATED
-)
-async def create_transaction(
-    tx_in: TransactionCreate, db: AsyncSession = Depends(get_db)
-):
+@router.post("", response_model=list[TransactionResponse], status_code=status.HTTP_201_CREATED)
+async def create_transaction(tx_in: TransactionCreate, db: AsyncSession = Depends(get_db)):
     """
     Cria uma ou mais transações financeiras aplicando regras contábeis:
     - Transação simples à vista

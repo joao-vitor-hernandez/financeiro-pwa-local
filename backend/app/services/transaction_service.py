@@ -44,9 +44,7 @@ async def process_transaction_creation(
                 detail="A conta de origem e destino não podem ser a mesma.",
             )
 
-        target_stmt = select(Account).where(
-            Account.id == data.transfer_target_account_id
-        )
+        target_stmt = select(Account).where(Account.id == data.transfer_target_account_id)
         target_res = await session.execute(target_stmt)
         target_account = target_res.scalars().first()
         if not target_account:

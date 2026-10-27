@@ -38,9 +38,7 @@ class Transaction(Base):
 
     __tablename__ = "transactions"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     account_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("accounts.id", ondelete="CASCADE"),
@@ -61,12 +59,8 @@ class Transaction(Base):
     original_description: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     # Valor monetário sempre positivo; o tipo define a operação contábil
-    amount: Mapped[Decimal] = mapped_column(
-        Numeric(precision=15, scale=2), nullable=False
-    )
-    transaction_date: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), nullable=False
-    )
+    amount: Mapped[Decimal] = mapped_column(Numeric(precision=15, scale=2), nullable=False)
+    transaction_date: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     type: Mapped[TransactionType] = mapped_column(
         SQLEnum(TransactionType, name="transaction_type_enum"), nullable=False
     )
@@ -78,9 +72,7 @@ class Transaction(Base):
         ForeignKey("accounts.id", ondelete="SET NULL"),
         nullable=True,
     )
-    transfer_pair_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), nullable=True
-    )
+    transfer_pair_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
 
     # Parcelamentos
     installment_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -107,9 +99,7 @@ class Transaction(Base):
     account: Mapped[Account] = relationship(
         "Account", back_populates="transactions", foreign_keys=[account_id]
     )
-    category: Mapped[Category | None] = relationship(
-        "Category", back_populates="transactions"
-    )
+    category: Mapped[Category | None] = relationship("Category", back_populates="transactions")
     bill: Mapped[CreditCardBill | None] = relationship(
         "CreditCardBill", back_populates="transactions"
     )

@@ -11,9 +11,7 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 
 
 @router.get("/summary", response_model=DashboardSummary)
-async def get_summary(
-    ref_date: datetime | None = Query(None), db: AsyncSession = Depends(get_db)
-):
+async def get_summary(ref_date: datetime | None = Query(None), db: AsyncSession = Depends(get_db)):
     """
     Retorna os dados consolidados para os cards executivos do Dashboard.
     """

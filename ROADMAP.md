@@ -109,22 +109,25 @@ PostgreSQL rodando no Docker; backup gerado, criptografado, enviado ao Cloudflar
 ## Fase 3: Motor de Regras & Integração Open Finance (Pluggy)
 > **Objetivo:** Ingestão de dados bancários reais sem duplicatas e motor de categorização determinístico baseado em expressões regulares (Regex).
 
-- [ ] **3.1. Cliente de Integração Pluggy**
-  - Comunicação assíncrona com os endpoints da Pluggy (`/auth`, `/accounts`, `/transactions`).
-  - Armazenamento seguro dos IDs de conectores e itens.
-- [ ] **3.2. Idempotência e Prevenção de Duplicatas**
-  - Restrição única no PostgreSQL:
-    `UNIQUE (account_id, external_id, transaction_date, amount)`
-  - Lógica de `UPSERT` para lidar com transações cujo status muda de "pendente" para "processado".
-- [ ] **3.3. Motor de Regras Determinístico (Rule Engine)**
-  - Tabela `categorization_rules` (padrão regex, prioridade, categoria alvo).
-  - Sanitizador de descrições (ex: `PAG*JoseLanches 123` -> `José Lanches`).
-  - Auto-identificação de transferências entre contas próprias cadastradas.
-- [ ] **3.4. Worker de Sincronização em Segundo Plano**
-  - Agendador assíncrono (APScheduler) executando a cada 12/24 horas.
+- [x] **3.1. Cliente de Integração Pluggy**
+  - Cliente HTTP assíncrono (`PluggyClient`) com cache de autenticação JWT e paginação.
+  - Endpoints para consulta de contas conectadas e transações de extrato.
+- [x] **3.2. Idempotência e Prevenção de Duplicatas**
+  - Pipeline de ingestão com verificação de unicidade por `(account_id, external_id)`.
+  - Tratamento resiliente: re-execução do sync não duplica lançamentos e não altera saldos indevidamente.
+- [x] **3.3. Motor de Regras Determinístico (Rule Engine)**
+  - Tabela e migração Alembic para `categorization_rules` (`526fcddd2054_add_categorization_rules`).
+  - Higienizador de descrições bancárias (remoção de prefixos `PAG*`, `PG*`, `COMPRA COM CARTAO -`, etc.).
+  - Avaliação de regras por prioridade e atribuição automática de categorias e nomes limpos.
+  - Endpoints CRUD completos para gerenciamento de regras (`/api/v1/rules`).
+- [x] **3.4. Worker de Sincronização em Segundo Plano**
+  - Agendador assíncrono configurado via `APScheduler` com inicialização e encerramento gracioso no ciclo de vida do FastAPI (`app/main.py`).
+  - Endpoint para disparo de sincronização manual sob demanda (`/api/v1/sync/pluggy`).
+- [x] **3.5. Suíte de Testes da Fase 3**
+  - 14 testes unitários e de integração cobrindo higienização de texto, prioridade de regras, idempotência bancária e endpoints da API, todos aprovados com 100% de sucesso.
 
 **Critério de Conclusão da Fase 3:**  
-Simulação de ingestão de extrato bancário categoriza transações conhecidas e ignora duplicatas sem gerar erro ou alterar saldos indevidamente.
+Concluída e validada. Ingestão de extratos categoriza lançamentos por regras Regex e ignora duplicatas sem alterar saldos; 14 testes passando no `pytest`.
 
 ---
 

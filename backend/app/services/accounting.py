@@ -9,9 +9,7 @@ from app.models.account import Account, AccountType
 from app.models.credit_card_bill import BillStatus, CreditCardBill
 
 
-def distribute_installments(
-    total_amount: Decimal, num_installments: int
-) -> list[Decimal]:
+def distribute_installments(total_amount: Decimal, num_installments: int) -> list[Decimal]:
     """
     Divide um valor monetário em N parcelas com conservação matemática exata de centavos.
 

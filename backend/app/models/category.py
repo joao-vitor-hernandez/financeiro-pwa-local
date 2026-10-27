@@ -24,9 +24,7 @@ class Category(Base):
 
     __tablename__ = "categories"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     type: Mapped[CategoryType] = mapped_column(
         SQLEnum(CategoryType, name="category_type_enum"), nullable=False
@@ -52,6 +50,4 @@ class Category(Base):
     subcategories: Mapped[list[Category]] = relationship(
         "Category", back_populates="parent", lazy="selectin"
     )
-    transactions: Mapped[list[Transaction]] = relationship(
-        "Transaction", back_populates="category"
-    )
+    transactions: Mapped[list[Transaction]] = relationship("Transaction", back_populates="category")

@@ -62,9 +62,7 @@ async def pay_credit_card_bill(
     acc_res = await db.execute(acc_stmt)
     payment_acc = acc_res.scalars().first()
     if not payment_acc:
-        raise HTTPException(
-            status_code=404, detail="Conta de pagamento não encontrada."
-        )
+        raise HTTPException(status_code=404, detail="Conta de pagamento não encontrada.")
 
     # Cartão de crédito da fatura
     card_stmt = select(Account).where(Account.id == bill.account_id)

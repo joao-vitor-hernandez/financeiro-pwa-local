@@ -20,9 +20,7 @@ async def get_dashboard_summary(
     ref_month = reference_date.month
 
     # 1. Saldos em Contas Correntes e Carteira
-    stmt_checking = select(
-        func.coalesce(func.sum(Account.balance), Decimal("0.00"))
-    ).where(
+    stmt_checking = select(func.coalesce(func.sum(Account.balance), Decimal("0.00"))).where(
         Account.is_active == True,
         Account.type.in_([AccountType.CHECKING, AccountType.CASH]),
     )
@@ -30,9 +28,7 @@ async def get_dashboard_summary(
     total_checking = res_checking.scalar_one()
 
     # 2. Saldos em Investimentos e Poupança
-    stmt_investments = select(
-        func.coalesce(func.sum(Account.balance), Decimal("0.00"))
-    ).where(
+    stmt_investments = select(func.coalesce(func.sum(Account.balance), Decimal("0.00"))).where(
         Account.is_active == True,
         Account.type.in_([AccountType.INVESTMENT, AccountType.SAVINGS]),
     )
@@ -66,9 +62,7 @@ async def get_dashboard_summary(
     net_worth = (total_checking + total_investments) - total_card_debt
 
     # 5. Receitas do Mês (Desconsiderando transferências neutras)
-    stmt_income = select(
-        func.coalesce(func.sum(Transaction.amount), Decimal("0.00"))
-    ).where(
+    stmt_income = select(func.coalesce(func.sum(Transaction.amount), Decimal("0.00"))).where(
         and_(
             Transaction.type == TransactionType.INCOME,
             Transaction.is_transfer == False,
@@ -80,9 +74,7 @@ async def get_dashboard_summary(
     monthly_income = res_income.scalar_one()
 
     # 6. Despesas do Mês (Desconsiderando transferências neutras)
-    stmt_expenses = select(
-        func.coalesce(func.sum(Transaction.amount), Decimal("0.00"))
-    ).where(
+    stmt_expenses = select(func.coalesce(func.sum(Transaction.amount), Decimal("0.00"))).where(
         and_(
             Transaction.type == TransactionType.EXPENSE,
             Transaction.is_transfer == False,

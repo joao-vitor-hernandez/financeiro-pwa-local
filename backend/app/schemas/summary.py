@@ -16,10 +16,6 @@ class DashboardSummary(BaseModel):
     )
     net_worth: Decimal  # Patrimônio líquido total (checking + investments - total debt)
 
-    monthly_income: (
-        Decimal  # Entradas do mês corrente (excluindo transferências neutras)
-    )
-    monthly_expenses: (
-        Decimal  # Saídas do mês corrente (excluindo transferências neutras)
-    )
+    monthly_income: Decimal  # Entradas do mês corrente (excluindo transferências neutras)
+    monthly_expenses: Decimal  # Saídas do mês corrente (excluindo transferências neutras)
     monthly_result: Decimal  # Resultado do mês (Receitas - Despesas)

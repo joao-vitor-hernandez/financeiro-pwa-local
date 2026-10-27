@@ -6,16 +6,32 @@ from fastapi.middleware.cors import CORSMiddleware
 import app.models  # Garante que todos os modelos sejam importados
 from app.core.config import settings
 from app.core.database import Base, engine
-from app.routers import accounts, bills, categories, dashboard, transactions
+from app.routers import (
+    accounts,
+    bills,
+    categories,
+    dashboard,
+    rules,
+    sync,
+    transactions,
+)
+from app.services.sync_worker import start_sync_scheduler, stop_sync_scheduler
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Inicialização: criar tabelas se não existirem (ideal para desenvolvimento rápido)
+    # Inicialização: criar tabelas se não existirem
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    # Iniciar agendador de sincronização apenas se credenciais estiverem configuradas
+    if settings.PLUGGY_CLIENT_ID and settings.PLUGGY_CLIENT_SECRET:
+        start_sync_scheduler(interval_hours=12)
+
     yield
-    # Finalização: fechar conexões
+
+    # Finalização: parar agendador e fechar pool de conexões
+    stop_sync_scheduler()
     await engine.dispose()
 
 
@@ -49,6 +65,8 @@ app.include_router(categories.router, prefix="/api/v1")
 app.include_router(bills.router, prefix="/api/v1")
 app.include_router(transactions.router, prefix="/api/v1")
 app.include_router(dashboard.router, prefix="/api/v1")
+app.include_router(rules.router, prefix="/api/v1")
+app.include_router(sync.router, prefix="/api/v1")
 
 
 @app.get("/health", tags=["Health"])

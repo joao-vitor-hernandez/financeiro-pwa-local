@@ -37,9 +37,7 @@ class CreditCardBill(Base):
 
     __tablename__ = "credit_card_bills"
 
-    id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
-    )
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     account_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("accounts.id", ondelete="CASCADE"),
@@ -50,9 +48,7 @@ class CreditCardBill(Base):
     month: Mapped[int] = mapped_column(Integer, nullable=False)
     year: Mapped[int] = mapped_column(Integer, nullable=False)
 
-    closing_date: Mapped[date] = mapped_column(
-        Date, nullable=False
-    )  # Data de corte/fechamento
+    closing_date: Mapped[date] = mapped_column(Date, nullable=False)  # Data de corte/fechamento
     due_date: Mapped[date] = mapped_column(Date, nullable=False)  # Data de vencimento
 
     status: Mapped[BillStatus] = mapped_column(
@@ -71,12 +67,8 @@ class CreditCardBill(Base):
     )
 
     # Relacionamentos
-    account: Mapped[Account] = relationship(
-        "Account", back_populates="credit_card_bills"
-    )
-    transactions: Mapped[list[Transaction]] = relationship(
-        "Transaction", back_populates="bill"
-    )
+    account: Mapped[Account] = relationship("Account", back_populates="credit_card_bills")
+    transactions: Mapped[list[Transaction]] = relationship("Transaction", back_populates="bill")
 
     # Restrição única: Um cartão não pode ter duas faturas para o mesmo mês/ano
     __table_args__ = (
