@@ -4,7 +4,7 @@
 
 services:
   # ----------------------------------------------------------------------------
-  # Banco de Dados Relacional - PostgreSQL 16
+  # 1. Banco de Dados Relacional - PostgreSQL 16
   # ----------------------------------------------------------------------------
   postgres:
     image: postgres:16-alpine
@@ -12,12 +12,11 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password_dev_123}
       POSTGRES_DB: ${POSTGRES_DB:-financeiro_db}
       TZ: UTC
     ports:
       # Exposto na porta 5432 do host apenas para desenvolvimento local
-      # No Homelab de produção, pode ser restrito apenas à rede interna Docker
       - "127.0.0.1:5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
@@ -28,6 +27,57 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
+    networks:
+      - finance_internal_net
+
+  # ----------------------------------------------------------------------------
+  # 2. Servidor Backend - FastAPI
+  # ----------------------------------------------------------------------------
+  backend:
+    build:
+      context: ../backend
+      dockerfile: Dockerfile
+    container_name: financeiro_backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      ENVIRONMENT: production
+      DEBUG: "False"
+      POSTGRES_USER: ${POSTGRES_USER:-postgres_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password_dev_123}
+      POSTGRES_DB: ${POSTGRES_DB:-financeiro_db}
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres_user}:${POSTGRES_PASSWORD:-postgres_password_dev_123}@postgres:5432/${POSTGRES_DB:-financeiro_db}
+      JWT_SECRET_KEY: ${JWT_SECRET_KEY:-dev_secret_key_financial_pwa_local_only_1234567890abcdef}
+      PRIMARY_USER_EMAIL: ${PRIMARY_USER_EMAIL:-jvhernandez.dev@gmail.com}
+      PLUGGY_CLIENT_ID: ${PLUGGY_CLIENT_ID:-}
+      PLUGGY_CLIENT_SECRET: ${PLUGGY_CLIENT_SECRET:-}
+      PLUGGY_BASE_URL: ${PLUGGY_BASE_URL:-https://api.pluggy.ai}
+    ports:
+      # Exposto na porta 8000 do host para acesso local ou teste direto
+      - "127.0.0.1:8000:8000"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/health || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - finance_internal_net
+
+  # ----------------------------------------------------------------------------
+  # 3. Cloudflare Tunnel (cloudflared)
+  # ----------------------------------------------------------------------------
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: financeiro_tunnel
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARE_TUNNEL_TOKEN}
+    depends_on:
+      - backend
     networks:
       - finance_internal_net
 
