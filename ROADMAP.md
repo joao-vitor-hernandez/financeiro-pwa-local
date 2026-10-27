@@ -131,8 +131,39 @@ Concluída e validada. Ingestão de extratos categoriza lançamentos por regras 
 
 ---
 
+## Fase 5: Frontend Angular PWA (Design Anti-IA & Offline-First) *(Concluída)*
+> **Ordem de Execução:** Priorizada para o PC principal antes da Fase 4 para possibilitar validação visual e uso local imediato da interface.  
+> **Objetivo:** Construir uma interface agradável, rápida, pensada para usabilidade em smartphone, sem aparência genérica de template de IA.
+
+- [x] **5.1. Setup do Angular Moderno**
+  - Angular CLI com TypeScript estrito, Standalone Components e Signals.
+  - Adição do pacote `@angular/pwa` (Service Worker, ícones e `manifest.webmanifest`).
+  - IndexedDB configurado via Dexie para persistência e resiliência offline.
+- [x] **5.2. Design System Sóbrio e Humano**
+  - Paleta neutra (tons de Zinc 950/900/800) com acentos semafóricos discretos (verde/vermelho contábeis).
+  - Tipografia limpa com `tabular-nums` para moedas e valores contábeis.
+  - Sem gradientes roxo/neon clichês ou cards hiper-aninhados.
+  - Ergonomia mobile: botões e áreas de toque com mínimo de 44x44px; navegação inferior (*Bottom Navigation*).
+  - Componente de ícones SVG nativos otimizados (zero dependências externas e 0KB de sobrecarga).
+- [x] **5.3. Funcionalidades Chave da Interface**
+  - **Cards Executivos:** Saldo líquido disponível, fatura aberta, passivo total e fluxo de resultado do mês.
+  - **Modo Privacidade:** Botão de alternância instantânea para ofuscar valores (`R$ •••••`) em ambientes públicos com persistência local.
+  - **Lançamento Rápido (*Quick Add*):** Gaveta inferior (*bottom sheet*) com seletor de tipo (despesa/receita/transferência), parcelamento e teclado numérico decimal.
+  - **Extrato Inteligente:** Agrupamento por data, subtotais diários, filtros por tipo, busca em tempo real e visualização de parcelas.
+  - **Gestão de Contas & Faturas:** Visualização de limites de cartões e fluxo de pagamento de faturas com débito em conta corrente.
+- [x] **5.4. Operação Offline e Cache (IndexedDB)**
+  - Armazenamento local de contas, transações e sumário no IndexedDB via Dexie.
+  - Fallback transparente do `ApiService` para IndexedDB em caso de indisponibilidade de rede.
+  - Roteamento SPA configurado via `_redirects` para Cloudflare Pages.
+
+**Critério de Conclusão da Fase 5:**  
+Bundle de produção gerado com 100% de sucesso (apenas 127 kB transfer size), PWA instalável com Service Worker, Modo Privacidade e navegação fluida.
+
+---
+
 ## Fase 4: Exposição Segura (Cloudflare Tunnel)
-> **Objetivo:** Expor a API do Homelab para a internet pública com conexão criptografada de saída, sem abrir portas no roteador residencial.
+> **Objetivo:** Expor a API do Homelab para a internet pública com conexão criptografada de saída, sem abrir portas no roteador residencial.  
+> **Nota de Integração:** O projeto no Cloudflare Pages já foi pré-criado no painel e conectado ao repositório GitHub para futuro deploy do frontend.
 
 - [ ] **4.1. Setup do `cloudflared` no Docker**
   - Adicionar o serviço `cloudflared` no `docker-compose.yml`.
@@ -147,31 +178,6 @@ Concluída e validada. Ingestão de extratos categoriza lançamentos por regras 
 
 **Critério de Conclusão da Fase 4:**  
 A API responde com sucesso via HTTPS no subdomínio público com o roteador local com 100% das portas de entrada fechadas.
-
----
-
-## Fase 5: Frontend Angular PWA (Design Anti-IA & Offline-First)
-> **Objetivo:** Construir uma interface agradável, rápida, pensada para usabilidade em smartphone, sem aparência genérica de template de IA.
-
-- [ ] **5.1. Setup do Angular Moderno**
-  - Angular CLI com TypeScript estrito, Standalone Components e Signals.
-  - Adição do pacote `@angular/pwa` (Service Worker e `manifest.webmanifest`).
-- [ ] **5.2. Design System Sóbrio e Humano**
-  - Paleta neutra (tons de zinc/slate) com acentos semafóricos discretos (verde/vermelho contábeis).
-  - Tipografia limpa e legível (Inter/Geist) com hierarquia visual clara.
-  - Sem gradientes roxo/neon clichês ou cards hiper-aninhados.
-  - Ergonomia mobile: botões e áreas de toque com mínimo de 44x44px; navegação inferior (*Bottom Navigation*).
-- [ ] **5.3. Funcionalidades Chave da Interface**
-  - **Cards Executivos:** Saldo líquido, fatura aberta e previsão até o fim do mês.
-  - **Modo Privacidade:** Botão de alternância instantânea para ofuscar valores (`R$ •••••`) em ambientes públicos.
-  - **Lançamento Rápido (*Quick Add*):** Gaveta que sobe de baixo (*bottom sheet*) exigindo apenas Valor e Categoria para inputs em 3 segundos.
-  - **Extrato Inteligente:** Filtros por conta, categoria e mês com visualização clara de parcelas (ex: "Parcela 3 de 10").
-- [ ] **5.4. Operação Offline e Cache (IndexedDB)**
-  - Armazenamento local do último estado financeiro no IndexedDB.
-  - O app abre instantaneamente no celular mesmo em modo avião ou sem sinal 4G.
-
-**Critério de Conclusão da Fase 5:**  
-PWA instalável no celular (iOS/Android) via navegador; interface ágil, fluida, operando com modo privacidade e cache offline validado.
 
 ---
 
