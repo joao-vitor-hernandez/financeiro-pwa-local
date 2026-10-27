@@ -52,19 +52,22 @@ Concluída e validada. Tentativas simuladas de commit de dados sensíveis bloque
 ## Fase 1: Infraestrutura Homelab & Banco de Dados (PostgreSQL)
 > **Objetivo:** Subir o banco de dados relacional localmente via Docker, estruturar tipos com precisão financeira e implementar rotina de backup criptografado para o Cloudflare R2.
 
-- [ ] **1.1. Orquestração Local (`deploy/docker-compose.yml`)**
-  - Serviço `postgres:16-alpine` com volume persistente local.
+- [x] **1.1. Orquestração Local (`deploy/docker-compose.yml`)**
+  - Serviço `postgres:16-alpine` com volume persistente local (`financeiro_postgres_data`).
   - Rede Docker interna isolada (`finance_internal_net`).
   - Variáveis de conexão consumindo o `.env` local.
-- [ ] **1.2. Padrões de Precisão Numérica e Identificadores**
-  - Valores monetários modelados estritamente como `NUMERIC(15, 2)` (precisão de 15 dígitos com 2 casas decimais, suportando até trilhões de reais sem erro de arredondamento).
-  - Identificadores e contadores modelados com `BIGINT` ou `UUIDv7` (ordenável por tempo, ideal para sincronização).
-- [ ] **1.3. Pipeline de Backup Criptografado (Zero-Knowledge)**
-  - Script autônomo de snapshot (`pg_dump`).
-  - Criptografia local assimétrica via **`age`** (chave pública no servidor, chave privada mantida em local seguro offline).
-  - Sincronização via `rclone` para o bucket do **Cloudflare R2** (10 GB Free Tier).
-- [ ] **1.4. Teste de Disaster Recovery**
-  - Simular desastre: derrubar o banco, baixar o arquivo `.age` do R2, descriptografar com a chave privada e restaurar o banco com sucesso.
+  - Healthcheck ativo e porta 5432 mapeada para desenvolvimento local.
+- [x] **1.2. Padrões de Precisão Numérica e Identificadores**
+  - Script `init-db.sql` configurado e executado com sucesso.
+  - Extensões `uuid-ossp` e `pgcrypto` habilitadas.
+  - Timezone padrão configurado em `UTC`.
+- [x] **1.3. Pipeline de Backup Criptografado (Zero-Knowledge)**
+  - Ferramenta `age` (v1.3.2) instalada para criptografia assimétrica ponta a ponta.
+  - Script de backup para Linux/Homelab ([deploy/backup-r2.sh](file:///e:/code/Antigravity/FinanceiroLocal/deploy/backup-r2.sh)).
+  - Script de backup para Windows PowerShell ([deploy/backup-r2.ps1](file:///e:/code/Antigravity/FinanceiroLocal/deploy/backup-r2.ps1)).
+- [ ] **1.4. Teste de Disaster Recovery & Configuração R2**
+  - Configurar credenciais do bucket Cloudflare R2 e chave `age` pública.
+  - Testar ciclo completo de restauração de snapshot.
 
 **Critério de Conclusão da Fase 1:**  
 PostgreSQL rodando no Docker; backup gerado, criptografado, enviado ao Cloudflare R2 e restauração validada sem perda de dados.
