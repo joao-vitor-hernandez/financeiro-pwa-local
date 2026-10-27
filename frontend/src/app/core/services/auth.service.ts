@@ -26,6 +26,8 @@ export class AuthService {
   isAuthenticated = signal<boolean>(false);
   isSetup = signal<boolean>(true);
   isLoading = signal<boolean>(true);
+  isServerReachable = signal<boolean>(true);
+  connectionError = signal<string | null>(null);
   userEmail = signal<string>('jvhernandez.dev@gmail.com');
 
   constructor() {
@@ -53,37 +55,46 @@ export class AuthService {
     this.isLoading.set(true);
     const token = this.getToken();
 
-    this.http.get<AuthStatusResponse>(`${this.apiUrl}/status`).pipe(
-      catchError(() => of({ is_setup: true, email: 'jvhernandez.dev@gmail.com' }))
-    ).subscribe((status) => {
-      this.isSetup.set(status.is_setup);
-      this.userEmail.set(status.email);
+    this.http.get<AuthStatusResponse>(`${this.apiUrl}/status`).subscribe({
+      next: (status) => {
+        this.isServerReachable.set(true);
+        this.connectionError.set(null);
+        this.isSetup.set(status.is_setup);
+        this.userEmail.set(status.email);
 
-      if (!status.is_setup) {
-        // Precisa configurar o primeiro PIN
-        this.isAuthenticated.set(false);
-        this.isLoading.set(false);
-        return;
-      }
-
-      if (!token) {
-        this.isAuthenticated.set(false);
-        this.isLoading.set(false);
-        return;
-      }
-
-      // Valida o token existente chamando /auth/me
-      this.http.get(`${this.apiUrl}/me`).subscribe({
-        next: () => {
-          this.isAuthenticated.set(true);
-          this.isLoading.set(false);
-        },
-        error: () => {
-          this.clearToken();
+        if (!status.is_setup) {
+          // Precisa configurar o primeiro PIN
           this.isAuthenticated.set(false);
           this.isLoading.set(false);
-        },
-      });
+          return;
+        }
+
+        if (!token) {
+          this.isAuthenticated.set(false);
+          this.isLoading.set(false);
+          return;
+        }
+
+        // Valida o token existente chamando /auth/me
+        this.http.get(`${this.apiUrl}/me`).subscribe({
+          next: () => {
+            this.isAuthenticated.set(true);
+            this.isLoading.set(false);
+          },
+          error: () => {
+            this.clearToken();
+            this.isAuthenticated.set(false);
+            this.isLoading.set(false);
+          },
+        });
+      },
+      error: () => {
+        this.isServerReachable.set(false);
+        this.connectionError.set(
+          'Aguardando conexão com o servidor local (Fase 4: Cloudflare Tunnel).'
+        );
+        this.isLoading.set(false);
+      },
     });
   }
 

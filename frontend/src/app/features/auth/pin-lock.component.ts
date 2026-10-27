@@ -21,13 +21,26 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 
         <!-- Instruções -->
         <div class="pin-prompt">
-          <h2 class="prompt-title">
-            {{ authService.isSetup() ? 'Digite seu PIN de 6 dígitos' : 'Cadastre seu PIN de 6 dígitos' }}
-          </h2>
-          <p class="prompt-subtitle">
-            {{ authService.isSetup() ? 'Acesso restrito e criptografado' : 'Defina sua chave mestre de acesso' }}
-          </p>
+          @if (!authService.isServerReachable()) {
+            <h2 class="prompt-title">Servidor Local Desconectado</h2>
+            <p class="prompt-subtitle">
+              O PWA está no ar, mas a API local precisa do Cloudflare Tunnel (Fase 4) para receber conexões externas.
+            </p>
+          } @else {
+            <h2 class="prompt-title">
+              {{ authService.isSetup() ? 'Digite seu PIN de 6 dígitos' : 'Cadastre seu PIN de 6 dígitos' }}
+            </h2>
+            <p class="prompt-subtitle">
+              {{ authService.isSetup() ? 'Acesso restrito e criptografado' : 'Defina sua chave mestre de acesso' }}
+            </p>
+          }
         </div>
+
+        @if (authService.connectionError()) {
+          <div class="connection-notice">
+            <span>{{ authService.connectionError() }}</span>
+          </div>
+        }
 
         <!-- Indicador Visual dos 6 Dígitos com Animação Shake em Erro -->
         <div class="pin-dots" [class.shake]="isShaking()">
@@ -190,6 +203,18 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       0%, 100% { transform: translateX(0); }
       20%, 60% { transform: translateX(-8px); }
       40%, 80% { transform: translateX(8px); }
+    }
+
+    .connection-notice {
+      background-color: rgba(245, 158, 11, 0.1);
+      color: #f59e0b;
+      border: 1px solid rgba(245, 158, 11, 0.25);
+      border-radius: var(--radius-md);
+      padding: 10px 14px;
+      font-size: 12px;
+      margin-bottom: 20px;
+      max-width: 320px;
+      line-height: 1.4;
     }
 
     .error-msg {
