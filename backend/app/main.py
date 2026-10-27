@@ -1,0 +1,60 @@
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+
+import app.models  # Garante que todos os modelos sejam importados
+from app.core.config import settings
+from app.core.database import Base, engine
+from app.routers import accounts, bills, categories, dashboard, transactions
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Inicialização: criar tabelas se não existirem (ideal para desenvolvimento rápido)
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    yield
+    # Finalização: fechar conexões
+    await engine.dispose()
+
+
+app = FastAPI(
+    title=settings.APP_NAME,
+    description="API do Sistema Financeiro Pessoal PWA com Precisão Decimal Arbitrária e Open Finance",
+    version="1.0.0",
+    docs_url="/docs" if settings.DEBUG else None,
+    redoc_url=None,
+    lifespan=lifespan,
+)
+
+# CORS Middleware
+# Em dev: permite requisições do Angular local (http://localhost:4200)
+# Em prod: aceita seu domínio do Cloudflare Pages
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:4200",
+        "http://127.0.0.1:4200",
+        "https://*.pages.dev",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Inclusão dos roteadores da API
+app.include_router(accounts.router, prefix="/api/v1")
+app.include_router(categories.router, prefix="/api/v1")
+app.include_router(bills.router, prefix="/api/v1")
+app.include_router(transactions.router, prefix="/api/v1")
+app.include_router(dashboard.router, prefix="/api/v1")
+
+
+@app.get("/health", tags=["Health"])
+async def health_check():
+    return {
+        "status": "healthy",
+        "environment": settings.ENVIRONMENT,
+        "app": settings.APP_NAME,
+    }

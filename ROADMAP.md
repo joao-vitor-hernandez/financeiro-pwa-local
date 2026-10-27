@@ -77,28 +77,32 @@ PostgreSQL rodando no Docker; backup gerado, criptografado, enviado ao Cloudflar
 ## Fase 2: Domínio Contábil & Core da API (FastAPI)
 > **Objetivo:** Desenvolver o núcleo contábil em Python utilizando FastAPI, SQLAlchemy 2.0 e Pydantic v2 com precisão decimal absoluta e testes unitários.
 
-- [ ] **2.1. Setup do Projeto Backend**
-  - Estrutura modular: `app/routers/`, `app/services/`, `app/models/`, `app/schemas/`, `app/core/`.
-  - Configuração do SQLAlchemy 2.0 com conexões assíncronas (`asyncpg`).
-  - Migrações automáticas configuradas via Alembic.
-- [ ] **2.2. Modelagem das Entidades Financeiras**
-  - `Account`: Contas bancárias, carteiras e cartões de crédito.
-  - `Category` e `Subcategory`: Árvore de classificação de despesas e receitas.
-  - `Transaction`: Lançamentos com valor em `Decimal`, data, tipo, flag de transferência e metadados.
-  - `CreditCardBill`: Ciclos de fatura (data de fechamento, data de vencimento, status: aberta/fechada/paga).
-- [ ] **2.3. Regras de Negócio e Cálculos Contábeis (Services)**
-  - **Uso estrito de `decimal.Decimal`:** Todas as operações matemáticas aplicam `ROUND_HALF_EVEN` (arredondamento bancário).
-  - **Distribuição de Parcelas:** Algoritmo de divisão que garante a conservação exata dos centavos (ex: R$ 100,00 em 3x = R$ 33,34 + R$ 33,33 + R$ 33,33).
-  - **Ciclo de Cartão de Crédito:** Lançamentos após o dia de corte são alocados automaticamente na fatura subsequente.
-  - **Transferências Neutras (Partidas Dobradas):** Débito em uma conta e crédito em outra sem impacto no saldo geral de receitas/despesas.
-- [ ] **2.4. Endpoints REST & Validação com Pydantic v2**
-  - CRUD completo de contas, categorias e transações.
-  - Endpoints de resumo consolidado (saldo atual, faturas em aberto, fluxo mensal).
-- [ ] **2.5. Suíte de Testes Automatizados (`pytest`)**
-  - Testes unitários com banco de dados de teste validando integridade matemática, divisões de parcelas e transações entre contas.
+- [x] **2.1. Setup do Projeto Backend**
+  - Ambiente virtual Python 3.12 (`.venv`) configurado com FastAPI, Uvicorn, SQLAlchemy 2.0 (async), asyncpg, Alembic e Ruff.
+  - Configurações centralizadas via `pydantic-settings` lendo [.env](file:///e:/code/Antigravity/FinanceiroLocal/.env).
+- [x] **2.2. Modelagem das Entidades Financeiras**
+  - `Account`: Contas correntes, carteiras, investimentos e cartões de crédito.
+  - `Category`: Categorias e subcategorias com árvore hierárquica e `lazy="selectin"`.
+  - `CreditCardBill`: Faturas de cartão com ciclo de corte (`closing_day`), vencimento (`due_day`) e status (`OPEN`, `CLOSED`, `PAID`).
+  - `Transaction`: Lançamentos com valor estritamente em `Decimal`/`NUMERIC(15, 2)`, flags contábeis de transferência e metadados JSONB.
+  - Migração inicial autogerada e aplicada via Alembic (`39c4cd671cfa_initial_accounting_schema`).
+- [x] **2.3. Regras de Negócio e Cálculos Contábeis (Services)**
+  - **Conservação de Centavos em Parcelamentos:** Algoritmo `distribute_installments` garantindo que `sum(parcelas) == total_amount` exato (centavos residuais absorvidos na 1ª parcela).
+  - **Ciclo de Cartão de Crédito:** Algoritmo `calculate_bill_dates` alocando compras após o dia de corte automaticamente na fatura subsequente.
+  - **Partidas Dobradas:** Transferências neutras (`is_transfer = True`) gerando débito na conta de origem e crédito na conta de destino sem distorcer demonstrativos de receitas e despesas.
+  - **Liquidação de Faturas:** Endpoint para quitação de fatura com débito em conta corrente e proteção contra duplo pagamento.
+- [x] **2.4. Endpoints REST & Validação com Pydantic v2**
+  - CRUD e listagem de contas (`/api/v1/accounts`).
+  - CRUD e listagem de categorias e subcategorias (`/api/v1/categories`).
+  - Criação de transações simples, parceladas e transferências (`/api/v1/transactions`).
+  - Consulta de faturas e liquidação (`/api/v1/bills`).
+  - Resumo executivo para o Dashboard (`/api/v1/dashboard/summary`).
+- [x] **2.5. Suíte de Testes Automatizados (`pytest`)**
+  - 8 testes unitários e de integração executados contra o PostgreSQL 16 com 100% de sucesso.
+  - Linter Ruff sem nenhum erro ou aviso.
 
 **Critério de Conclusão da Fase 2:**  
-100% dos testes unitários de regras contábeis passando no `pytest`; zero divergência de centavos nas contas.
+100% dos testes unitários de regras contábeis passando no `pytest`; zero divergência de centavos nas contas; banco de dados migrado via Alembic.
 
 ---
 
