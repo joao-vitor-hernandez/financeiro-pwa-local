@@ -5,9 +5,12 @@ from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.pool import NullPool
 
+from app.core.auth_dependency import get_current_user
 from app.core.config import settings
 from app.core.database import Base, get_db
+from app.core.security import hash_pin
 from app.main import app
+from app.models.user import User
 
 # Conexão de teste apontando para o banco de teste dedicado no PostgreSQL
 TEST_DATABASE_URL = (
@@ -44,7 +47,38 @@ async def db_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest_asyncio.fixture(scope="function")
-async def client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+async def auth_user(db_session: AsyncSession) -> User:
+    user = User(
+        email=settings.PRIMARY_USER_EMAIL,
+        pin_hash=hash_pin("123456"),
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture(scope="function")
+async def client(db_session: AsyncSession, auth_user: User) -> AsyncGenerator[AsyncClient, None]:
+    async def override_get_db():
+        yield db_session
+
+    async def override_get_current_user():
+        return auth_user
+
+    app.dependency_overrides[get_db] = override_get_db
+    app.dependency_overrides[get_current_user] = override_get_current_user
+
+    transport = ASGITransport(app=app)
+    async with AsyncClient(transport=transport, base_url="http://test") as ac:
+        yield ac
+
+    app.dependency_overrides.clear()
+
+
+@pytest_asyncio.fixture(scope="function")
+async def unauth_client(db_session: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
     async def override_get_db():
         yield db_session
 

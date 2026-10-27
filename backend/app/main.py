@@ -1,13 +1,15 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 import app.models  # Garante que todos os modelos sejam importados
+from app.core.auth_dependency import get_current_user
 from app.core.config import settings
 from app.core.database import Base, engine
 from app.routers import (
     accounts,
+    auth,
     bills,
     categories,
     dashboard,
@@ -52,6 +54,7 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:4200",
         "http://127.0.0.1:4200",
+        "https://financeiro.entrefilas.com.br",
     ],
     allow_origin_regex=r"^https:\/\/.*\.pages\.dev$",
     allow_credentials=True,
@@ -60,13 +63,18 @@ app.add_middleware(
 )
 
 # Inclusão dos roteadores da API
-app.include_router(accounts.router, prefix="/api/v1")
-app.include_router(categories.router, prefix="/api/v1")
-app.include_router(bills.router, prefix="/api/v1")
-app.include_router(transactions.router, prefix="/api/v1")
-app.include_router(dashboard.router, prefix="/api/v1")
-app.include_router(rules.router, prefix="/api/v1")
-app.include_router(sync.router, prefix="/api/v1")
+# Rotas públicas de autenticação
+app.include_router(auth.router, prefix="/api/v1")
+
+# Rotas financeiras protegidas com autenticação JWT obrigatória
+auth_deps = [Depends(get_current_user)]
+app.include_router(accounts.router, prefix="/api/v1", dependencies=auth_deps)
+app.include_router(categories.router, prefix="/api/v1", dependencies=auth_deps)
+app.include_router(bills.router, prefix="/api/v1", dependencies=auth_deps)
+app.include_router(transactions.router, prefix="/api/v1", dependencies=auth_deps)
+app.include_router(dashboard.router, prefix="/api/v1", dependencies=auth_deps)
+app.include_router(rules.router, prefix="/api/v1", dependencies=auth_deps)
+app.include_router(sync.router, prefix="/api/v1", dependencies=auth_deps)
 
 
 @app.get("/health", tags=["Health"])

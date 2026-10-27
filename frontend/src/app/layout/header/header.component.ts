@@ -1,6 +1,7 @@
 import { Component, inject, signal } from '@angular/core';
 import { PrivacyService } from '../../core/services/privacy.service';
 import { ApiService } from '../../core/services/api.service';
+import { AuthService } from '../../core/services/auth.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 
 @Component({
@@ -32,6 +33,15 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
           [title]="privacy.isPrivate() ? 'Mostrar valores' : 'Ocultar valores'"
         >
           <app-icon [name]="privacy.isPrivate() ? 'eye-off' : 'eye'" [size]="20" />
+        </button>
+
+        <!-- Botão Bloquear Sessão (PIN Lock) -->
+        <button
+          class="btn btn-ghost btn-icon"
+          (click)="auth.logout()"
+          title="Bloquear aplicativo"
+        >
+          <app-icon name="lock" [size]="18" />
         </button>
       </div>
     </header>
@@ -87,6 +97,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 })
 export class HeaderComponent {
   privacy = inject(PrivacyService);
+  auth = inject(AuthService);
   private api = inject(ApiService);
   isSyncing = signal<boolean>(false);
 

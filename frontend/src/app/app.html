@@ -1,11 +1,15 @@
-<div class="app-layout">
-  <app-header />
+@if (!authService.isAuthenticated()) {
+  <app-pin-lock />
+} @else {
+  <div class="app-layout">
+    <app-header />
 
-  <main class="main-content">
-    <router-outlet />
-  </main>
+    <main class="main-content">
+      <router-outlet />
+    </main>
 
-  <app-bottom-nav (openQuickAdd)="syncService.openQuickAdd()" />
+    <app-bottom-nav (openQuickAdd)="syncService.openQuickAdd()" />
 
-  <app-quick-add />
-</div>
+    <app-quick-add />
+  </div>
+}

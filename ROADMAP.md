@@ -217,6 +217,7 @@ Um commit na branch `main` dispara os testes automaticamente e atualiza o PWA no
 | **Precisão Monetária** | `Decimal` / `NUMERIC(15, 2)` | Elimina imprecisões binárias de `float` (ex: `0.1 + 0.2 != 0.3`). |
 | **Identificadores** | `BIGINT` / `UUIDv7` | Suporta escala massiva e ordenação temporal nativa sem colisão. |
 | **Segurança do Homelab** | Cloudflare Tunnel | Não abre portas no roteador; túnel de saída TLS 1.3 seguro. |
+| **Autenticação & Bloqueio** | BCrypt (rounds=12) + JWT + PIN 6D + Cloudflare Zero Trust | Protege contra força bruta com key stretching, lockout após 5 erros e blindagem na borda com OTP de e-mail. |
 | **Backup Resiliente** | `pg_dump` + `age` + Cloudflare R2 | Custo zero (10 GB free), zero egress fee e criptografia ponta a ponta. |
 | **Frontend PWA** | Angular + Signals + IndexedDB | Tipagem forte corporativa, reatividade nativa e funcionamento offline. |
 | **Deploy Automatizado** | GitHub Actions + Cloudflare Pages | CI/CD profissional que comprova proficiência DevOps no portfólio. |

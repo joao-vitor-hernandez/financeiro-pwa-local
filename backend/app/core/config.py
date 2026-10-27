@@ -25,9 +25,10 @@ class Settings(BaseSettings):
     DATABASE_URL: str = f"postgresql+asyncpg://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST}:{POSTGRES_PORT}/{POSTGRES_DB}"
 
     # JWT & Auth
+    PRIMARY_USER_EMAIL: str = "jvhernandez.dev@gmail.com"
     JWT_SECRET_KEY: str = "dev_secret_key_financial_pwa_local_only_1234567890abcdef"
     JWT_ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 43200  # 30 dias para conveniência de PWA pessoal
 
     # Pluggy Open Finance
     PLUGGY_CLIENT_ID: str | None = None
