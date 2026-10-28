@@ -50,10 +50,10 @@ export interface CalculatedSegment extends CategoryExpenseSegment {
               [attr.stroke-width]="isHovered(segment) ? strokeWidth() + 4 : strokeWidth()"
               [attr.stroke-dasharray]="segment.strokeDasharray"
               [attr.stroke-dashoffset]="segment.strokeDashoffset"
-              stroke-linecap="round"
+              [attr.stroke-linecap]="strokeLinecap()"
               class="donut-segment"
               [class.active]="isHovered(segment)"
-              [style.filter]="isHovered(segment) ? 'drop-shadow(0px 0px 8px ' + segment.color + ') brightness(1.15)' : 'none'"
+              [style.filter]="isHovered(segment) ? 'drop-shadow(0px 0px 10px ' + segment.color + ') brightness(1.2)' : 'none'"
               (mouseenter)="onSegmentHover(segment)"
             />
           }
@@ -65,7 +65,7 @@ export interface CalculatedSegment extends CategoryExpenseSegment {
           [style.width.px]="centerSize()"
           [style.height.px]="centerSize()"
         >
-          <span class="center-label truncate">
+          <span class="center-label truncate" [title]="activeLabel()">
             {{ activeLabel() }}
           </span>
           <span class="center-value currency-val tabular-nums text-expense">
@@ -104,7 +104,7 @@ export interface CalculatedSegment extends CategoryExpenseSegment {
               </div>
 
               <div class="legend-right">
-                <span class="legend-pct tabular-nums">{{ segment.calculatedPercentage.toFixed(0) }}%</span>
+                <span class="legend-pct tabular-nums">{{ segment.calculatedPercentage.toFixed(1) }}%</span>
                 <span class="legend-val currency-val tabular-nums">
                   {{ segment.numericValue | privacyCurrency }}
                 </span>
@@ -139,11 +139,11 @@ export interface CalculatedSegment extends CategoryExpenseSegment {
 
     .donut-segment {
       transform-origin: center;
-      transition: stroke-width 0.2s ease, filter 0.2s ease, transform 0.2s ease;
+      transition: stroke-width 0.2s ease, filter 0.2s ease, opacity 0.2s ease;
       cursor: pointer;
 
       &:hover, &.active {
-        transform: scale(1.025);
+        opacity: 1;
       }
     }
 
@@ -229,7 +229,7 @@ export interface CalculatedSegment extends CategoryExpenseSegment {
         width: 10px;
         height: 10px;
         border-radius: 50%;
-        shrink: 0;
+        flex-shrink: 0;
         transition: box-shadow 0.2s ease;
       }
 
@@ -272,6 +272,8 @@ export class DonutChartComponent {
   totalValue = input<number | string | null>(null);
   size = input<number>(240);
   strokeWidth = input<number>(24);
+  gap = input<number>(3);
+  strokeLinecap = input<'butt' | 'round'>('butt');
   defaultLabel = input<string>('Fatura Cartões');
   showLegend = input<boolean>(true);
 
@@ -284,25 +286,44 @@ export class DonutChartComponent {
 
   effectiveTotal = computed(() => {
     const propTotal = this.totalValue();
-    if (propTotal !== null && propTotal !== undefined) {
-      return parseFloat(propTotal.toString()) || 0;
+    const parsedProp =
+      propTotal !== null && propTotal !== undefined ? parseFloat(propTotal.toString()) : 0;
+    if (parsedProp > 0) {
+      return parsedProp;
     }
-    return this.data().reduce((acc, seg) => acc + (parseFloat(seg.value.toString()) || 0), 0);
+    return this.data().reduce(
+      (acc, seg) => acc + (parseFloat(seg.value?.toString() || '0') || 0),
+      0
+    );
   });
 
   calculatedSegments = computed<CalculatedSegment[]>(() => {
     const list = this.data();
     const total = this.effectiveTotal();
     const circ = this.circumference();
+    const gapPx = this.gap();
 
-    let cumulativePercentage = 0;
+    if (!list || list.length === 0 || total <= 0) {
+      return [];
+    }
+
+    const useGap = list.length > 1 && gapPx > 0;
+    const totalGaps = useGap ? list.length * gapPx : 0;
+    const usableCirc = Math.max(0, circ - totalGaps);
+
+    let cumulativeCirc = 0;
+
     return list.map((seg) => {
-      const numVal = parseFloat(seg.value.toString()) || 0;
+      const numVal = parseFloat(seg.value?.toString() || '0') || 0;
       const percentage = total > 0 ? (numVal / total) * 100 : 0;
-      const strokeDasharray = `${(percentage / 100) * circ} ${circ}`;
-      const strokeDashoffset = -((cumulativePercentage / 100) * circ);
 
-      cumulativePercentage += percentage;
+      // Comprimento do arco proporcional ao total e ao perímetro disponível
+      const dashLength = (percentage / 100) * (useGap ? usableCirc : circ);
+      const strokeDasharray = `${dashLength} ${circ}`;
+      const strokeDashoffset = cumulativeCirc === 0 ? 0 : -cumulativeCirc;
+
+      // Incrementa o percurso acumulado para o próximo segmento
+      cumulativeCirc += dashLength + (useGap ? gapPx : 0);
 
       return {
         ...seg,
@@ -330,7 +351,7 @@ export class DonutChartComponent {
     const hovered = this.hoveredSegment();
     if (!hovered) return '100';
     const total = this.effectiveTotal();
-    const num = parseFloat(hovered.value.toString()) || 0;
+    const num = parseFloat(hovered.value?.toString() || '0') || 0;
     return total > 0 ? ((num / total) * 100).toFixed(1) : '0.0';
   });
 

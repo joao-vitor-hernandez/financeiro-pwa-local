@@ -11,3 +11,4 @@ export interface CardExpensesResponse {
   period: string;
   segments: CategoryExpenseSegment[];
 }
+

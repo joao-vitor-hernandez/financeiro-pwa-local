@@ -1,4 +1,4 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
@@ -111,7 +111,17 @@ import { DonutChartComponent } from '../../shared/components/donut-chart/donut-c
             <h2 class="section-title">Gastos nos Cartões por Sessão</h2>
             <p class="section-subtitle">Visualização dinâmica por área de gasto</p>
           </div>
-          <span class="period-badge">{{ cardExpenses()?.period || 'Mês Atual' }}</span>
+          <div class="header-actions">
+            @if (isSimulating()) {
+              <button class="btn-text-link" (click)="resetChartToRealData()" title="Voltar aos dados reais">
+                <app-icon name="repeat" [size]="12" />
+                <span>Limpar Simulação</span>
+              </button>
+            }
+            <span class="period-badge" [class.simulation-badge]="isSimulating()">
+              {{ cardExpenses()?.period || 'Mês Atual' }}
+            </span>
+          </div>
         </div>
 
         <div class="chart-card">
@@ -137,6 +147,7 @@ import { DonutChartComponent } from '../../shared/components/donut-chart/donut-c
               [totalValue]="cardExpenses()?.total_value || null"
               [size]="240"
               [strokeWidth]="26"
+              [gap]="3"
               defaultLabel="Fatura Cartões"
             />
           }
@@ -370,6 +381,32 @@ import { DonutChartComponent } from '../../shared/components/donut-chart/donut-c
           margin-top: 2px;
         }
 
+        .header-actions {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
+
+        .btn-text-link {
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          font-size: 11px;
+          font-weight: 500;
+          color: var(--text-muted);
+          background: transparent;
+          border: none;
+          cursor: pointer;
+          padding: 2px 6px;
+          border-radius: var(--radius-sm);
+          transition: color 0.15s ease, background 0.15s ease;
+
+          &:hover {
+            color: var(--color-accent);
+            background: var(--bg-surface-elevated);
+          }
+        }
+
         .period-badge {
           font-size: 11px;
           font-weight: 600;
@@ -378,6 +415,12 @@ import { DonutChartComponent } from '../../shared/components/donut-chart/donut-c
           background-color: var(--bg-surface-elevated);
           color: var(--text-secondary);
           border: 1px solid var(--border-subtle);
+
+          &.simulation-badge {
+            color: var(--color-accent);
+            border-color: rgba(29, 205, 254, 0.3);
+            background-color: rgba(29, 205, 254, 0.08);
+          }
         }
       }
 
@@ -618,6 +661,7 @@ export class DashboardComponent implements OnInit {
   cardExpenses = signal<CardExpensesResponse | null>(null);
   chartSegments = signal<CategoryExpenseSegment[]>([]);
   isChartLoading = signal<boolean>(true);
+  isSimulating = computed(() => this.cardExpenses()?.period === 'Simulação');
 
   ngOnInit(): void {
     this.fetchData();
@@ -638,7 +682,7 @@ export class DashboardComponent implements OnInit {
     this.api.getCardExpenses().subscribe({
       next: (resp) => {
         this.cardExpenses.set(resp);
-        this.chartSegments.set(resp.segments);
+        this.chartSegments.set(resp.segments || []);
         this.isChartLoading.set(false);
       },
       error: () => {
@@ -658,14 +702,34 @@ export class DashboardComponent implements OnInit {
   }
 
   loadSampleChartData(): void {
-    this.chartSegments.set([
+    const sampleSegments: CategoryExpenseSegment[] = [
       { label: 'Alimentação & Mercado', value: '1240.50', color: '#1DCDFE', percentage: 43.2, count: 14 },
       { label: 'Assinaturas & SaaS', value: '680.00', color: '#21D0B2', percentage: 23.7, count: 6 },
       { label: 'Transporte & Uber', value: '430.20', color: '#34F5C5', percentage: 15.0, count: 12 },
       { label: 'Lazer & Restaurantes', value: '310.00', color: '#fbbf24', percentage: 10.8, count: 4 },
       { label: 'Saúde & Farmácia', value: '189.90', color: '#f43f5e', percentage: 6.6, count: 3 },
       { label: 'Outros Lançamentos', value: '20.00', color: '#94a3b8', percentage: 0.7, count: 1 },
-    ]);
+    ];
+    this.cardExpenses.set({
+      total_value: '2870.60',
+      period: 'Simulação',
+      segments: sampleSegments,
+    });
+    this.chartSegments.set(sampleSegments);
+  }
+
+  resetChartToRealData(): void {
+    this.isChartLoading.set(true);
+    this.api.getCardExpenses().subscribe({
+      next: (resp) => {
+        this.cardExpenses.set(resp);
+        this.chartSegments.set(resp.segments || []);
+        this.isChartLoading.set(false);
+      },
+      error: () => {
+        this.isChartLoading.set(false);
+      },
+    });
   }
 
   isResultPositive(): boolean {
