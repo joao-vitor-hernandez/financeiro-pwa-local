@@ -4,10 +4,15 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.schemas.summary import CardExpensesResponse, DashboardSummary
+from app.schemas.summary import (
+    CardExpensesResponse,
+    DashboardSummary,
+    SavingsEvolutionResponse,
+)
 from app.services.summary_service import (
     get_card_expenses_by_category,
     get_dashboard_summary,
+    get_savings_evolution,
 )
 
 router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
@@ -32,3 +37,21 @@ async def get_card_expenses(
     """
     target_date = ref_date or datetime.now(UTC)
     return await get_card_expenses_by_category(session=db, reference_date=target_date)
+
+
+@router.get("/savings-evolution", response_model=SavingsEvolutionResponse)
+async def get_savings_growth(
+    months: int = Query(6, ge=1, le=24),
+    ref_date: datetime | None = Query(None),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Retorna o crescimento histórico do patrimônio guardado separado por:
+    - Dinheiro na conta parado (Conta corrente/carteira)
+    - Cofrinhos (Mercado Pago, Caixinhas, Reserva imediata)
+    - Investido (Aplicações, CDB, Renda Fixa, Ações)
+    - Total Consolidado
+    """
+    target_date = ref_date or datetime.now(UTC)
+    return await get_savings_evolution(session=db, reference_date=target_date, months_count=months)
+

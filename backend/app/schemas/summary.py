@@ -33,3 +33,24 @@ class CardExpensesResponse(BaseModel):
     total_value: Decimal
     period: str
     segments: list[CategoryExpenseSegment]
+
+
+class SavingsPoint(BaseModel):
+    date: str  # ex: "2026-05"
+    label: str  # ex: "Mai"
+    checking: Decimal  # Dinheiro na conta parado
+    savings: Decimal  # Cofrinhos (Mercado Pago, caixinhas)
+    investment: Decimal  # Investido
+    total: Decimal  # Total acumulado
+
+
+class SavingsEvolutionResponse(BaseModel):
+    current_total: Decimal
+    current_checking: Decimal
+    current_savings: Decimal
+    current_investment: Decimal
+    period_growth_amount: Decimal
+    period_growth_percentage: float
+    period: str  # ex: "Últimos 6 meses"
+    points: list[SavingsPoint]
+

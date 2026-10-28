@@ -6,14 +6,23 @@ import { FinanceSyncService } from '../../core/services/finance-sync.service';
 import { DashboardSummary } from '../../core/models/summary.model';
 import { Transaction } from '../../core/models/transaction.model';
 import { CardExpensesResponse, CategoryExpenseSegment } from '../../core/models/card-expenses.model';
+import { SavingsEvolutionResponse, SavingsPoint } from '../../core/models/savings-evolution.model';
 import { PrivacyCurrencyPipe } from '../../core/pipes/privacy-currency.pipe';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { DonutChartComponent } from '../../shared/components/donut-chart/donut-chart.component';
+import { SavingsEvolutionChartComponent } from '../../shared/components/savings-evolution-chart/savings-evolution-chart.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, PrivacyCurrencyPipe, IconComponent, DonutChartComponent],
+  imports: [
+    CommonModule,
+    RouterLink,
+    PrivacyCurrencyPipe,
+    IconComponent,
+    DonutChartComponent,
+    SavingsEvolutionChartComponent,
+  ],
   template: `
     <div class="dashboard-page">
       <!-- Cabeçalho de Boas-Vindas & Ações Rápidas -->
@@ -102,6 +111,44 @@ import { DonutChartComponent } from '../../shared/components/donut-chart/donut-c
             </span>
           </div>
         </div>
+      </section>
+
+      <!-- Painel de Crescimento Patrimonial: Dinheiro Guardado (Conta Parado, Cofrinhos, Investido) -->
+      <section class="chart-section savings-section">
+        @if (isSavingsLoading()) {
+          <div class="chart-skeleton"></div>
+        } @else {
+          <app-savings-evolution-chart
+            [data]="savingsPoints()"
+            [period]="savingsEvolution()?.period || 'Últimos 6 meses'"
+            [growthAmount]="savingsEvolution()?.period_growth_amount || null"
+            [growthPercentage]="savingsEvolution()?.period_growth_percentage ?? null"
+            [currentTotal]="savingsEvolution()?.current_total || null"
+          />
+
+          @if (isZeroSavings() && !isSavingsSimulating()) {
+            <div class="simulation-prompt-box">
+              <div class="prompt-text">
+                <span class="prompt-title">Nenhum histórico acumulado ainda</span>
+                <span class="prompt-desc">
+                  Visualize como seu dinheiro parado, cofrinhos do Mercado Pago e investimentos crescem ao longo do tempo.
+                </span>
+              </div>
+              <button class="btn btn-secondary demo-btn" (click)="loadSampleSavingsData()">
+                <app-icon name="repeat" [size]="14" />
+                <span>Simular Exemplo Interativo</span>
+              </button>
+            </div>
+          } @else if (isSavingsSimulating()) {
+            <div class="simulation-status-bar">
+              <span class="status-text">Simulação ativa com valores distribuídos entre Conta, Cofrinhos e Investimentos</span>
+              <button class="btn-text-link" (click)="resetSavingsToRealData()">
+                <app-icon name="repeat" [size]="12" />
+                <span>Restaurar dados reais</span>
+              </button>
+            </div>
+          }
+        }
       </section>
 
       <!-- Gráfico Donut: Distribuição Dinâmica de Gastos nos Cartões -->
@@ -473,12 +520,61 @@ import { DonutChartComponent } from '../../shared/components/donut-chart/donut-c
       }
 
       .chart-skeleton {
-        width: 220px;
+        width: 100%;
         height: 220px;
-        border-radius: 50%;
+        border-radius: var(--radius-md);
         background-color: var(--bg-surface-elevated);
         animation: pulse 1.5s infinite ease-in-out;
-        margin: 20px 0;
+        margin: 10px 0;
+      }
+
+      .simulation-prompt-box {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 14px;
+        padding: 12px 16px;
+        background: var(--bg-surface-elevated);
+        border: 1px dashed var(--border-subtle);
+        border-radius: var(--radius-md);
+
+        .prompt-text {
+          display: flex;
+          flex-direction: column;
+          gap: 2px;
+        }
+
+        .prompt-title {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--text-primary);
+        }
+
+        .prompt-desc {
+          font-size: 12px;
+          color: var(--text-secondary);
+          max-width: 480px;
+        }
+      }
+
+      .simulation-status-bar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 12px;
+        padding: 8px 12px;
+        background: rgba(29, 205, 254, 0.06);
+        border: 1px solid rgba(29, 205, 254, 0.2);
+        border-radius: var(--radius-sm);
+
+        .status-text {
+          font-size: 12px;
+          color: var(--color-accent);
+          font-weight: 500;
+        }
       }
     }
 
@@ -657,11 +753,23 @@ export class DashboardComponent implements OnInit {
   recentTransactions = signal<Transaction[]>([]);
   isLoading = signal<boolean>(true);
 
-  // Donut Chart - Gastos nos Cartões por Sessão
+  // Gráfico Donut - Gastos nos Cartões por Sessão
   cardExpenses = signal<CardExpensesResponse | null>(null);
   chartSegments = signal<CategoryExpenseSegment[]>([]);
   isChartLoading = signal<boolean>(true);
   isSimulating = computed(() => this.cardExpenses()?.period === 'Simulação');
+
+  // Painel de Crescimento Patrimonial - Dinheiro Guardado
+  savingsEvolution = signal<SavingsEvolutionResponse | null>(null);
+  savingsPoints = signal<SavingsPoint[]>([]);
+  isSavingsLoading = signal<boolean>(true);
+  isSavingsSimulating = signal<boolean>(false);
+
+  isZeroSavings = computed(() => {
+    const pts = this.savingsPoints();
+    if (!pts || pts.length === 0) return true;
+    return pts.every((p) => (parseFloat(p.total?.toString() || '0') || 0) === 0);
+  });
 
   ngOnInit(): void {
     this.fetchData();
@@ -671,6 +779,7 @@ export class DashboardComponent implements OnInit {
   fetchData(): void {
     this.isLoading.set(true);
     this.isChartLoading.set(true);
+    this.isSavingsLoading.set(true);
 
     this.api.getDashboardSummary().subscribe({
       next: (data) => {
@@ -690,6 +799,17 @@ export class DashboardComponent implements OnInit {
       },
     });
 
+    this.api.getSavingsEvolution(6).subscribe({
+      next: (resp) => {
+        this.savingsEvolution.set(resp);
+        this.savingsPoints.set(resp.points || []);
+        this.isSavingsLoading.set(false);
+      },
+      error: () => {
+        this.isSavingsLoading.set(false);
+      },
+    });
+
     this.api.getTransactions(undefined, undefined, 5).subscribe({
       next: (txs) => {
         this.recentTransactions.set(txs);
@@ -697,6 +817,44 @@ export class DashboardComponent implements OnInit {
       },
       error: () => {
         this.isLoading.set(false);
+      },
+    });
+  }
+
+  loadSampleSavingsData(): void {
+    const samplePoints: SavingsPoint[] = [
+      { date: '2026-05', label: 'Mai', checking: '2100.00', savings: '3500.00', investment: '4000.00', total: '9600.00' },
+      { date: '2026-06', label: 'Jun', checking: '1850.00', savings: '4200.00', investment: '4800.00', total: '10850.00' },
+      { date: '2026-07', label: 'Jul', checking: '2400.00', savings: '5100.00', investment: '5500.00', total: '13000.00' },
+      { date: '2026-08', label: 'Ago', checking: '1950.00', savings: '5900.00', investment: '6300.00', total: '14150.00' },
+      { date: '2026-09', label: 'Set', checking: '2300.00', savings: '6700.00', investment: '7100.00', total: '16100.00' },
+      { date: '2026-10', label: 'Out', checking: '2750.00', savings: '7650.00', investment: '8100.00', total: '18500.00' },
+    ];
+    this.savingsEvolution.set({
+      current_total: '18500.00',
+      current_checking: '2750.00',
+      current_savings: '7650.00',
+      current_investment: '8100.00',
+      period_growth_amount: '8900.00',
+      period_growth_percentage: 92.7,
+      period: 'Simulação (6 meses)',
+      points: samplePoints,
+    });
+    this.savingsPoints.set(samplePoints);
+    this.isSavingsSimulating.set(true);
+  }
+
+  resetSavingsToRealData(): void {
+    this.isSavingsLoading.set(true);
+    this.isSavingsSimulating.set(false);
+    this.api.getSavingsEvolution(6).subscribe({
+      next: (resp) => {
+        this.savingsEvolution.set(resp);
+        this.savingsPoints.set(resp.points || []);
+        this.isSavingsLoading.set(false);
+      },
+      error: () => {
+        this.isSavingsLoading.set(false);
       },
     });
   }

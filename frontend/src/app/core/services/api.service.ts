@@ -8,6 +8,7 @@ import { Transaction, TransactionCreate } from '../models/transaction.model';
 import { CreditCardBill } from '../models/bill.model';
 import { DashboardSummary } from '../models/summary.model';
 import { CardExpensesResponse } from '../models/card-expenses.model';
+import { SavingsEvolutionResponse } from '../models/savings-evolution.model';
 import { OfflineDbService } from './offline-db.service';
 
 @Injectable({
@@ -104,5 +105,11 @@ export class ApiService {
     let params = new HttpParams();
     if (refDate) params = params.set('ref_date', refDate);
     return this.http.get<CardExpensesResponse>(`${this.apiUrl}/dashboard/card-expenses`, { params });
+  }
+
+  getSavingsEvolution(months: number = 6, refDate?: string): Observable<SavingsEvolutionResponse> {
+    let params = new HttpParams().set('months', months.toString());
+    if (refDate) params = params.set('ref_date', refDate);
+    return this.http.get<SavingsEvolutionResponse>(`${this.apiUrl}/dashboard/savings-evolution`, { params });
   }
 }

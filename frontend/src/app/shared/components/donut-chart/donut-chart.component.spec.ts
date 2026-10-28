@@ -86,3 +86,4 @@ describe('DonutChartComponent', () => {
     expect(component.activeValue()).toBe(1000);
   });
 });
+
