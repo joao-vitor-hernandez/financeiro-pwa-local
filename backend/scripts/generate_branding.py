@@ -1,6 +1,7 @@
 import os
-import math
+
 from PIL import Image, ImageDraw
+
 
 def create_gradient_icon(src_path: str) -> Image.Image:
     src = Image.open(src_path).convert("RGBA")
