@@ -11,7 +11,8 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
   template: `
     <header class="app-header">
       <div class="header-brand">
-        <span class="brand-name">Financeiro</span>
+        <img src="logo.png" alt="ClariFin Logo" class="brand-logo" width="28" height="28" />
+        <span class="brand-name">ClariFin</span>
         <span class="badge badge-neutral env-badge">Homelab</span>
       </div>
 
@@ -66,9 +67,17 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       align-items: center;
       gap: 10px;
 
+      .brand-logo {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+        filter: drop-shadow(0 2px 6px rgba(33, 208, 178, 0.3));
+      }
+
       .brand-name {
-        font-size: 17px;
-        font-weight: 600;
+        font-family: var(--font-sans);
+        font-size: 18px;
+        font-weight: 700;
         letter-spacing: -0.02em;
         color: var(--text-primary);
       }

@@ -13,9 +13,9 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         <!-- Ícone & Identificação do Usuário -->
         <div class="lock-header">
           <div class="lock-icon-badge">
-            <app-icon name="lock" [size]="24" />
+            <img src="logo.png" alt="ClariFin Logo" class="lock-brand-logo" width="44" height="44" />
           </div>
-          <h1 class="brand-title">Financeiro</h1>
+          <h1 class="brand-title">ClariFin</h1>
           <span class="user-badge">{{ authService.userEmail() }}</span>
         </div>
 
@@ -128,23 +128,32 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       margin-bottom: 24px;
 
       .lock-icon-badge {
-        width: 52px;
-        height: 52px;
-        border-radius: 50%;
-        background-color: var(--bg-surface-elevated);
-        border: 1px solid var(--border-subtle);
-        color: var(--text-primary);
+        width: 64px;
+        height: 64px;
+        border-radius: 20px;
+        background-color: rgba(33, 208, 178, 0.08);
+        border: 1px solid rgba(33, 208, 178, 0.2);
         display: flex;
         align-items: center;
         justify-content: center;
         margin-bottom: 12px;
+        box-shadow: 0 4px 20px rgba(33, 208, 178, 0.15);
+
+        .lock-brand-logo {
+          width: 44px;
+          height: 44px;
+          object-fit: contain;
+        }
       }
 
       .brand-title {
-        font-size: 20px;
-        font-weight: 700;
-        letter-spacing: -0.02em;
-        color: var(--text-primary);
+        font-family: var(--font-sans);
+        font-size: 24px;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+        background: var(--brand-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
       }
 
       .user-badge {

@@ -1,6 +1,7 @@
 {
-  "name": "Financeiro PWA",
-  "short_name": "Financeiro",
+  "name": "ClariFin",
+  "short_name": "ClariFin",
+  "description": "ClariFin - Gestão Financeira Pessoal com Precisão e Open Finance",
   "theme_color": "#09090b",
   "background_color": "#09090b",
   "display": "standalone",

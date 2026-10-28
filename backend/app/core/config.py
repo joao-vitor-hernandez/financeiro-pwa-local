@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     """
 
     ENVIRONMENT: str = "development"
-    APP_NAME: str = "Financeiro PWA"
+    APP_NAME: str = "ClariFin"
     DEBUG: bool = True
 
     # PostgreSQL
