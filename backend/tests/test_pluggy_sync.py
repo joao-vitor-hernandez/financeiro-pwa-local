@@ -129,3 +129,81 @@ async def test_rules_api_endpoints(client: AsyncClient):
     # Deletar regra
     del_res = await client.delete(f"/api/v1/rules/{rule_id}")
     assert del_res.status_code == 204
+
+
+@pytest.mark.asyncio
+async def test_pluggy_connect_token_endpoint(client: AsyncClient):
+    with patch(
+        "app.routers.sync.pluggy_client.create_connect_token", new_callable=AsyncMock
+    ) as mock_token:
+        mock_token.return_value = "mock_connect_token_xyz"
+        res = await client.post("/api/v1/sync/connect-token")
+        assert res.status_code == 200
+        assert res.json() == {"accessToken": "mock_connect_token_xyz"}
+
+
+@pytest.mark.asyncio
+async def test_pluggy_item_connected_and_account_discovery(client: AsyncClient, db_session: AsyncSession):
+    mock_accounts = [
+        {
+            "id": "pluggy_acc_checking_01",
+            "name": "Nubank Conta",
+            "type": "BANK",
+            "balance": 1500.50,
+            "currencyCode": "BRL",
+        },
+        {
+            "id": "pluggy_acc_credit_02",
+            "name": "Nubank Ultravioleta",
+            "type": "CREDIT",
+            "balance": 0.00,
+            "currencyCode": "BRL",
+            "creditData": {"creditLimit": 25000.00},
+        },
+    ]
+
+    with patch(
+        "app.routers.sync.pluggy_client.fetch_accounts", new_callable=AsyncMock
+    ) as mock_fetch_acc, patch(
+        "app.routers.sync.sync_all_accounts", new_callable=AsyncMock
+    ) as mock_sync_all:
+        mock_fetch_acc.return_value = mock_accounts
+        mock_sync_all.return_value = []
+
+        res = await client.post(
+            "/api/v1/sync/item-connected",
+            json={"itemId": "mock_item_123"},
+        )
+        assert res.status_code == 200
+        data = res.json()
+        assert data["success"] is True
+        assert data["accounts_created"] == 2
+
+    # Verificar se as contas foram persistidas
+    acc_res = await client.get("/api/v1/accounts")
+    assert acc_res.status_code == 200
+    saved = acc_res.json()
+    names = [a["name"] for a in saved]
+    assert "Nubank Conta" in names
+    assert "Nubank Ultravioleta" in names
+
+
+@pytest.mark.asyncio
+async def test_pluggy_public_webhook_endpoint(unauth_client: AsyncClient):
+    # Webhooks devem ser públicos (sem auth header) e responder HTTP 200 imediatamente
+    webhook_payload = {
+        "event": "transactions/created",
+        "itemId": "item_pluggy_test_999",
+        "eventId": "evt_123456",
+    }
+    with patch(
+        "app.routers.webhooks._process_pluggy_webhook", new_callable=AsyncMock
+    ) as mock_process:
+        res = await unauth_client.post(
+            "/api/v1/webhooks/pluggy",
+            json=webhook_payload,
+        )
+        assert res.status_code == 200
+        assert res.json() == {"received": True}
+        assert mock_process.called
+

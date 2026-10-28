@@ -125,9 +125,14 @@ PostgreSQL rodando no Docker; backup gerado, criptografado, enviado ao Cloudflar
   - Endpoint para disparo de sincronização manual sob demanda (`/api/v1/sync/pluggy`).
 - [x] **3.5. Suíte de Testes da Fase 3**
   - 14 testes unitários e de integração cobrindo higienização de texto, prioridade de regras, idempotência bancária e endpoints da API, todos aprovados com 100% de sucesso.
+- [x] **3.6. Pluggy Connect Widget & Webhooks em Tempo Real**
+  - Geração de Connect Token temporário no backend (`POST /api/v1/sync/connect-token`).
+  - Integração do SDK Pluggy Connect v2 no Angular PWA com acionamento nativo em "Conectar Banco".
+  - Endpoint de pós-conexão (`POST /api/v1/sync/item-connected`) para descoberta automática de contas correntes e cartões.
+  - Endpoint público de webhook (`POST /api/v1/webhooks/pluggy`) com resposta < 2s e ingestão contábil assíncrona em background.
 
 **Critério de Conclusão da Fase 3:**  
-Concluída e validada. Ingestão de extratos categoriza lançamentos por regras Regex e ignora duplicatas sem alterar saldos; 14 testes passando no `pytest`.
+Concluída e validada. Ingestão de extratos categoriza lançamentos por regras Regex e ignora duplicatas sem alterar saldos; fluxo completo de consentimento Pluggy Connect e Webhooks ativos; suíte com 20 testes passando no `pytest`.
 
 ---
 
@@ -161,23 +166,22 @@ Bundle de produção gerado com 100% de sucesso (apenas 127 kB transfer size), P
 
 ---
 
-## Fase 4: Exposição Segura (Cloudflare Tunnel)
+## Fase 4: Exposição Segura (Cloudflare Tunnel) *(Concluída)*
 > **Objetivo:** Expor a API do Homelab para a internet pública com conexão criptografada de saída, sem abrir portas no roteador residencial.  
-> **Nota de Integração:** O projeto no Cloudflare Pages já foi pré-criado no painel e conectado ao repositório GitHub para futuro deploy do frontend.
 
-- [ ] **4.1. Setup do `cloudflared` no Docker**
-  - Adicionar o serviço `cloudflared` no `docker-compose.yml`.
-  - Configurar autenticação via token gerenciado no painel Cloudflare Zero Trust.
-- [ ] **4.2. Roteamento de Subdomínio**
-  - Apontar o túnel para o domínio público da API (ex: `api.seudominio.com`).
-  - Redirecionar o tráfego interno diretamente para o container do FastAPI (`http://backend:8000`).
-- [ ] **4.3. Camada de Proteção no Cloudflare Edge (WAF)**
-  - Ativação de HTTPS obrigatório (TLS 1.3).
-  - Rate limiting na Cloudflare para mitigar ataques de força bruta.
-  - Regra de bloqueio geográfico ou regras de cabeçalho personalizadas se desejado.
+- [x] **4.1. Setup do `cloudflared` no Docker**
+  - Serviço `cloudflared` configurado na rede interna Docker (`finance_internal_net`).
+  - Conexão de saída criptografada via protocolo QUIC conectada à borda global da Cloudflare.
+- [x] **4.2. Roteamento de Subdomínio Dedicado**
+  - Subdomínio público isolado `https://api-fin.entrefilas.com.br` apontado para o container `http://backend:8000`.
+  - Frontend SPA hospedado no Cloudflare Pages em `https://financeiro.entrefilas.com.br` integrado com sucesso.
+- [x] **4.3. Camada de Segurança e In-App PIN Lockscreen**
+  - Autenticação bancária nativa com PIN numérico de 6 dígitos criptografado com BCrypt (cost factor 12).
+  - Bloqueio automático contra força bruta após 5 tentativas consecutivas incorretas (15 minutos).
+  - Sessões protegidas por JSON Web Tokens (JWT) com assinatura HS256 e interceptor HTTP Angular.
 
 **Critério de Conclusão da Fase 4:**  
-A API responde com sucesso via HTTPS no subdomínio público com o roteador local com 100% das portas de entrada fechadas.
+Concluída e validada. A API responde com sucesso via HTTPS em `api-fin.entrefilas.com.br` e o PWA foi acessado com sucesso via celular em rede externa sem nenhuma porta de entrada aberta no roteador.
 
 ---
 

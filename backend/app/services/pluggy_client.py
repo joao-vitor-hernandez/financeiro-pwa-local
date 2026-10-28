@@ -125,5 +125,54 @@ class PluggyClient:
                 )
             return res.json()
 
+    async def create_connect_token(self, client_user_id: str | None = None) -> str:
+        """
+        Gera um Connect Token para inicialização do Pluggy Connect Widget no frontend.
+        """
+        api_key = await self.get_api_key()
+        headers = {"X-API-KEY": api_key, "Content-Type": "application/json"}
+        payload: dict[str, Any] = {}
+        if client_user_id:
+            payload["clientUserId"] = client_user_id
+
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            res = await client.post(
+                f"{self.base_url}/connect_token",
+                headers=headers,
+                json=payload,
+            )
+            if res.status_code not in (200, 201):
+                logger.error(
+                    "Erro ao gerar connect token na Pluggy: status=%d body=%s",
+                    res.status_code,
+                    res.text,
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail="Erro de conexão com a Pluggy",
+                )
+            return res.json().get("accessToken")
+
+    async def fetch_item(self, item_id: str) -> dict[str, Any]:
+        """
+        Consulta os detalhes de uma conexão bancária (Item) na Pluggy.
+        """
+        api_key = await self.get_api_key()
+        headers = {"X-API-KEY": api_key}
+
+        async with httpx.AsyncClient(timeout=15.0) as client:
+            res = await client.get(f"{self.base_url}/items/{item_id}", headers=headers)
+            if res.status_code != 200:
+                logger.error(
+                    "Erro ao consultar item na Pluggy: status=%d body=%s",
+                    res.status_code,
+                    res.text,
+                )
+                raise HTTPException(
+                    status_code=status.HTTP_502_BAD_GATEWAY,
+                    detail="Erro de conexão com a Pluggy",
+                )
+            return res.json()
+
 
 pluggy_client = PluggyClient()

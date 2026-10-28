@@ -16,6 +16,7 @@ from app.routers import (
     rules,
     sync,
     transactions,
+    webhooks,
 )
 from app.services.sync_worker import start_sync_scheduler, stop_sync_scheduler
 
@@ -63,8 +64,9 @@ app.add_middleware(
 )
 
 # Inclusão dos roteadores da API
-# Rotas públicas de autenticação
+# Rotas públicas de autenticação e webhooks externos
 app.include_router(auth.router, prefix="/api/v1")
+app.include_router(webhooks.router, prefix="/api/v1")
 
 # Rotas financeiras protegidas com autenticação JWT obrigatória
 auth_deps = [Depends(get_current_user)]

@@ -17,13 +17,25 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       <header class="page-header">
         <div>
           <h1 class="page-title">Contas e Cartões</h1>
-          <p class="page-subtitle">Gestão de saldos, limites e pagamento de faturas</p>
+          <p class="page-subtitle">Gestão de saldos, limites e Open Finance</p>
         </div>
 
-        <button class="btn btn-secondary new-account-btn" (click)="openNewAccountModal()">
-          <app-icon name="plus" [size]="16" />
-          <span>Nova Conta</span>
-        </button>
+        <div class="header-actions">
+          <button
+            class="btn btn-primary connect-bank-btn"
+            (click)="openPluggyConnect()"
+            [disabled]="isConnectingBank()"
+            title="Conectar banco via Open Finance"
+          >
+            <app-icon name="link" [size]="16" />
+            <span>{{ isConnectingBank() ? 'Abrindo...' : 'Conectar Banco' }}</span>
+          </button>
+
+          <button class="btn btn-secondary new-account-btn" (click)="openNewAccountModal()">
+            <app-icon name="plus" [size]="16" />
+            <span>Nova Conta</span>
+          </button>
+        </div>
       </header>
 
       @if (isLoading()) {
@@ -307,6 +319,26 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         font-size: 13px;
         color: var(--text-secondary);
         margin-top: 2px;
+      }
+
+      .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+
+      .connect-bank-btn {
+        min-height: 40px;
+        padding: 0 14px;
+        font-size: 13px;
+        background-color: var(--color-accent);
+        color: #ffffff;
+        font-weight: 600;
+
+        &:hover:not(:disabled) {
+          filter: brightness(1.15);
+        }
       }
 
       .new-account-btn {
@@ -648,6 +680,7 @@ export class AccountsComponent implements OnInit {
   accounts = signal<Account[]>([]);
   billsMap = signal<Map<string, CreditCardBill>>(new Map());
   isLoading = signal<boolean>(true);
+  isConnectingBank = signal<boolean>(false);
 
   // Modais
   isNewAccountModalOpen = signal<boolean>(false);
@@ -723,6 +756,57 @@ export class AccountsComponent implements OnInit {
   isBillZero(cardId: string): boolean {
     const amount = parseFloat(this.getCardBillAmount(cardId));
     return isNaN(amount) || amount <= 0;
+  }
+
+  openPluggyConnect(): void {
+    if (this.isConnectingBank()) return;
+    this.isConnectingBank.set(true);
+
+    this.api.getConnectToken().subscribe({
+      next: (res) => {
+        if (typeof window !== 'undefined' && (window as any).PluggyConnect) {
+          const pluggyConnect = new (window as any).PluggyConnect({
+            connectToken: res.accessToken,
+            includeSandbox: true,
+            onSuccess: (itemData: any) => {
+              const itemId = itemData?.item?.id || itemData?.itemId;
+              if (itemId) {
+                this.api.notifyItemConnected(itemId).subscribe({
+                  next: () => {
+                    this.isConnectingBank.set(false);
+                    this.syncService.notifyDataChanged();
+                    this.loadAccounts();
+                  },
+                  error: (err) => {
+                    console.error('Erro ao registrar item conectado:', err);
+                    this.isConnectingBank.set(false);
+                  },
+                });
+              } else {
+                this.isConnectingBank.set(false);
+              }
+            },
+            onError: (error: any) => {
+              console.error('Erro no Pluggy Connect:', error);
+              this.isConnectingBank.set(false);
+            },
+            onClose: () => {
+              this.isConnectingBank.set(false);
+            },
+          });
+
+          pluggyConnect.init();
+        } else {
+          this.isConnectingBank.set(false);
+          alert('Widget Pluggy Connect indisponível ou bloqueado pelo navegador.');
+        }
+      },
+      error: (err) => {
+        this.isConnectingBank.set(false);
+        const detail = err?.error?.detail || 'Erro ao obter token do Open Finance.';
+        alert(typeof detail === 'string' ? detail : JSON.stringify(detail));
+      },
+    });
   }
 
   openNewAccountModal(): void {

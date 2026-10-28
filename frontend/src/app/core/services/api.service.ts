@@ -87,4 +87,15 @@ export class ApiService {
   triggerSync(): Observable<any> {
     return this.http.post(`${this.apiUrl}/sync/pluggy`, {});
   }
+
+  getConnectToken(): Observable<{ accessToken: string }> {
+    return this.http.post<{ accessToken: string }>(`${this.apiUrl}/sync/connect-token`, {});
+  }
+
+  notifyItemConnected(itemId: string): Observable<{ success: boolean; accounts_created: number }> {
+    return this.http.post<{ success: boolean; accounts_created: number }>(
+      `${this.apiUrl}/sync/item-connected`,
+      { itemId }
+    );
+  }
 }
