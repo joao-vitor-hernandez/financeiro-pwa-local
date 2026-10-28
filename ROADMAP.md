@@ -18,7 +18,8 @@
 - [Fase 5: Frontend Angular PWA (Design Anti-IA & Offline-First)](#fase-5-frontend-angular-pwa-design-anti-ia--offline-first)
 - [Fase 6: Esteira CI/CD (GitHub Actions)](#fase-6-esteira-cicd-github-actions)
 - [Fase 7: Inteligência Financeira, Orçamentos & Alertas Web Push](#fase-7-inteligência-financeira-orçamentos--alertas-web-push)
-- [Fase 8: Hardening, Validação & Documentação de Portfólio](#fase-8-hardening-validação--documentação-de-portfólio)
+- [Fase 8: Inteligência Preditiva & Gestão Patrimonial Avançada (Inspirada no Open-Source)](#fase-8-inteligência-preditiva--gestão-patrimonial-avançada-inspirada-no-open-source)
+- [Fase 9: Hardening, Validação & Documentação de Portfólio](#fase-9-hardening-validação--documentação-de-portfólio)
 
 ---
 
@@ -242,14 +243,43 @@ Orçamentos com barras de progresso ativos no dashboard; metas cadastradas e mon
 
 ---
 
-## Fase 8: Hardening, Validação & Documentação de Portfólio
+## Fase 8: Inteligência Preditiva & Gestão Patrimonial Avançada (Inspirada no Open-Source)
+> **Objetivo:** Incorporar as melhores práticas arquiteturais consolidadas por Actual Budget, Firefly III e Ghostfolio, trazendo previsibilidade de fluxo de caixa, limite diário de gastos, anexos de recibos no Cloudflare R2 e benchmarks de rentabilidade.
+
+- [ ] **8.1. Previsão de Saldo a 30 Dias (*Cash Flow Forecast* - Inspirado no Firefly III)**
+  - Algoritmo de projeção preditiva no backend: `Saldo Atual + Receitas Previstas - Faturas de Cartão Abertas - Despesas Fixas Recorrentes`.
+  - Curva pontilhada de projeção futura no gráfico de evolução patrimonial para os próximos 30 dias.
+  - Indicador de saldo estimado para o último dia do mês corrente, emitindo alertas proativos se houver risco de saldo negativo antes do fechamento.
+
+- [ ] **8.2. Indicador "Livre para Gastar por Dia" (*Safe to Spend* - Inspirado no Actual Budget)**
+  - Cálculo dinâmico contábil: `(Saldo Disponível - Contas e Faturas a Vencer até o fim do mês) / Dias Restantes no Mês`.
+  - Métrica executiva de alto impacto visual no topo do dashboard (ex: *"R$ 48,00 / dia livre para gastar"*).
+  - Atualização automática em tempo real a cada lançamento de despesa, pagamento de fatura ou entrada de receita.
+
+- [ ] **8.3. Anexo de Comprovantes & Notas Fiscais via Cloudflare R2 (Inspirado no Firefly III)**
+  - Tabela `transaction_attachments` vinculando arquivos de imagem (PNG, JPG, WebP) e documentos (PDF) a lançamentos contábeis.
+  - Upload direto do smartphone no modal de lançamento rápido (*Quick Add*), aproveitando a câmera do celular.
+  - Armazenamento no bucket Cloudflare R2 via URLs pré-assinadas com criptografia de ponta a ponta e zero custo de tráfego de saída (*zero egress fees*).
+  - Visualizador de recibos e comprovantes integrado ao Extrato Inteligente.
+
+- [ ] **8.4. Alocação de Ativos & Benchmark CDI dos Cofrinhos (Inspirado no Ghostfolio)**
+  - Definição de alocação patrimonial alvo (*Target Allocation*): percentual ideal entre Dinheiro em Conta, Cofrinhos (Mercado Pago / Reserva) e Investimentos.
+  - Gráfico Donut de rebalanceamento comparando a distribuição patrimonial real versus a meta desejada.
+  - Comparador de rendimento dos Cofrinhos contra a taxa CDI acumulada no período, indicando o ganho real líquido sobre a inflação.
+
+**Critério de Conclusão da Fase 8:**  
+Previsão de saldo a 30 dias funcional no gráfico; métrica de valor diário livre visível no dashboard; upload de fotos de comprovantes salvando no Cloudflare R2 e abrindo no extrato; comparador de rendimento dos cofrinhos contra o CDI ativo.
+
+---
+
+## Fase 9: Hardening, Validação & Documentação de Portfólio
 > **Objetivo:** Ajustes finais de performance, auditoria de segurança e consolidação do repositório como peça de destaque no portfólio.
 
-- [ ] **8.1. Auditoria de Performance (Lighthouse)**
+- [ ] **9.1. Auditoria de Performance (Lighthouse)**
   - Metas do PWA: Score 90+ em Performance, Acessibilidade, Melhores Práticas e PWA.
-- [ ] **8.2. Teste de Carga e Resiliência da Conexão**
+- [ ] **9.2. Teste de Carga e Resiliência da Conexão**
   - Validar reconexão automática do Cloudflare Tunnel após reinicialização do Homelab ou queda de internet residencial.
-- [ ] **8.3. README Executivo de Portfólio**
+- [ ] **9.3. README Executivo de Portfólio**
   - Diagrama de arquitetura de rede e fluxo de dados.
   - Demonstração em GIF/vídeo curto do PWA funcionando (incluindo Quick Add e Modo Privacidade).
   - Justificativa das decisões de engenharia (PostgreSQL, `Decimal`, Cloudflare Tunnel, R2, Angular Signals).
@@ -270,3 +300,7 @@ Orçamentos com barras de progresso ativos no dashboard; metas cadastradas e mon
 | **Alertas de Vencimento** | Web Push (VAPID) + `APScheduler` (`America/Sao_Paulo`) | Notificações push nativas de alta prioridade às 09h e 18h em D-1 e D-0 sem custos de provedores pagos (Twilio/SMS). |
 | **Lançamentos Offline** | Outbox Pattern (IndexedDB / Dexie) | Registro imediato de gastos sem internet com reconciliação idempotente automática ao reconectar. |
 | **Planejamento Orçamentário** | Metas por Categoria + Alertas Semafóricos | Controle proativo de teto de gastos antes do fechamento das faturas. |
+| **Previsão de Fluxo de Caixa** | Modelo Preditivo a 30 Dias (Firefly III) | Previne inadimplência ao cruzar passivo de cartões com contas fixas futuras. |
+| **Orientação a Gastos Diários** | Indicador *Safe to Spend* (Actual Budget) | Dá clareza psicológica imediata de quanto pode ser gasto hoje sem endividamento. |
+| **Custódia de Documentos** | Anexos no Cloudflare R2 (Zero Egress) | Preserva notas fiscais e comprovantes PIX sem inflar o banco relacional. |
+| **Inteligência de Ativos** | Benchmark CDI & Alocação Alvo (Ghostfolio) | Garante que o dinheiro guardado nos cofrinhos e investimentos acompanhe o mercado. |
