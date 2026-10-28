@@ -64,7 +64,7 @@ jobs:
           POSTGRES_DB: financeiro_test_db
           POSTGRES_HOST: localhost
           POSTGRES_PORT: 5432
-          JWT_SECRET_KEY: test_secret_key_ci_environment_1234567890abcdef
+          JWT_SECRET_KEY: test_ci_jwt_secret_key_for_automated_testing_env
           PRIMARY_USER_EMAIL: jvhernandez.dev@gmail.com
           PLUGGY_CLIENT_ID: ""
           PLUGGY_CLIENT_SECRET: ""

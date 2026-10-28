@@ -1,0 +1,17 @@
+# Configuração Gitleaks para o repositório ClariFin
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Permitir valores mock/dummy de teste em ambientes de CI e documentacao"
+paths = [
+  '''^\.github/workflows/.*\.ya?ml$''',
+  '''^backend/tests/.*$''',
+  '''^tests/.*$''',
+  '''^docs/.*$''',
+  '''^README\.md$'''
+]
+regexes = [
+  '''test_secret_key_ci_environment.*''',
+  '''postgres_password_test_.*'''
+]

@@ -17,3 +17,4 @@ export interface SavingsEvolutionResponse {
   period: string;
   points: SavingsPoint[];
 }
+
