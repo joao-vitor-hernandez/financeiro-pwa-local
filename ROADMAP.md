@@ -185,18 +185,18 @@ Concluída e validada. A API responde com sucesso via HTTPS em `api-fin.entrefil
 
 ---
 
-## Fase 6: Esteira CI/CD (GitHub Actions)
+## Fase 6: Esteira CI/CD (GitHub Actions) *(Concluída)*
 > **Objetivo:** Automação completa de testes, verificações de qualidade e publicação contínua sem esforço manual.
 
-- [ ] **6.1. Workflow de Segurança (`.github/workflows/security.yml`)**
+- [x] **6.1. Workflow de Segurança (`.github/workflows/security.yml`)**
   - Execução de `gitleaks` a cada push/PR para barrar vazamento de segredos.
-- [ ] **6.2. Workflow do Backend (`.github/workflows/backend.yml`)**
-  - Setup Python -> Linter com `ruff` -> Testes com `pytest` (usando container temporário de PostgreSQL) -> Teste de build do `Dockerfile`.
-- [ ] **6.3. Workflow do Frontend (`.github/workflows/frontend.yml`)**
-  - Setup Node.js -> Linter e testes -> `ng build --configuration production` -> Deploy automático no **Cloudflare Pages** via action oficial com credenciais em GitHub Secrets.
+- [x] **6.2. Workflow do Backend (`.github/workflows/backend.yml`)**
+  - Setup Python 3.12 -> Linter com `ruff` -> Testes com `pytest` (usando container de serviço PostgreSQL 16) -> Teste de build do `Dockerfile`.
+- [x] **6.3. Workflow do Frontend (`.github/workflows/frontend.yml`)**
+  - Setup Node.js 22.x -> Testes unitários (`vitest`) -> `ng build --configuration production` -> Validação de SPA routing (`_redirects`) e deploy no Cloudflare Pages.
 
 **Critério de Conclusão da Fase 6:**  
-Um commit na branch `main` dispara os testes automaticamente e atualiza o PWA no Cloudflare Pages em menos de 3 minutos, com zero intervenção manual.
+Concluída e validada. Workflows estruturados e ativados no repositório; testes, linter, segurança e publicação contínua automatizados no GitHub Actions.
 
 ---
 
