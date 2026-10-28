@@ -31,7 +31,7 @@ export class AuthService {
   userEmail = signal<string>('jvhernandez.dev@gmail.com');
 
   constructor() {
-    this.checkInitialStatus();
+    setTimeout(() => this.checkInitialStatus(), 0);
   }
 
   getToken(): string | null {
