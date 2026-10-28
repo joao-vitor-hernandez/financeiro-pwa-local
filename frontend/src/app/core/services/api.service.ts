@@ -7,6 +7,7 @@ import { Category, CategoryCreate } from '../models/category.model';
 import { Transaction, TransactionCreate } from '../models/transaction.model';
 import { CreditCardBill } from '../models/bill.model';
 import { DashboardSummary } from '../models/summary.model';
+import { CardExpensesResponse } from '../models/card-expenses.model';
 import { OfflineDbService } from './offline-db.service';
 
 @Injectable({
@@ -97,5 +98,11 @@ export class ApiService {
       `${this.apiUrl}/sync/item-connected`,
       { itemId }
     );
+  }
+
+  getCardExpenses(refDate?: string): Observable<CardExpensesResponse> {
+    let params = new HttpParams();
+    if (refDate) params = params.set('ref_date', refDate);
+    return this.http.get<CardExpensesResponse>(`${this.apiUrl}/dashboard/card-expenses`, { params });
   }
 }

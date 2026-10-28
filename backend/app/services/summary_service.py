@@ -1,13 +1,18 @@
-from datetime import datetime
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy import and_, extract, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.account import Account, AccountType
+from app.models.category import Category
 from app.models.credit_card_bill import BillStatus, CreditCardBill
 from app.models.transaction import Transaction, TransactionType
-from app.schemas.summary import DashboardSummary
+from app.schemas.summary import (
+    CardExpensesResponse,
+    CategoryExpenseSegment,
+    DashboardSummary,
+)
 
 
 async def get_dashboard_summary(
@@ -96,4 +101,96 @@ async def get_dashboard_summary(
         monthly_income=monthly_income,
         monthly_expenses=monthly_expenses,
         monthly_result=monthly_result,
+    )
+
+
+async def get_card_expenses_by_category(
+    session: AsyncSession, reference_date: datetime | None = None
+) -> CardExpensesResponse:
+    """
+    Agrupa os gastos de cartões de crédito por categoria/sessão para renderização
+    dinâmica no Donut Chart interativo.
+    """
+    target_date = reference_date or datetime.now(UTC)
+    ref_year = target_date.year
+    ref_month = target_date.month
+
+    # 1. Consulta despesas de cartões no mês de referência agrupadas por categoria
+    stmt = (
+        select(
+            func.coalesce(Category.name, "Outros / Sem Categoria").label("category_name"),
+            Category.color.label("category_color"),
+            func.coalesce(func.sum(Transaction.amount), Decimal("0.00")).label("total_amount"),
+            func.count(Transaction.id).label("tx_count"),
+        )
+        .join(Account, Transaction.account_id == Account.id)
+        .outerjoin(Category, Transaction.category_id == Category.id)
+        .where(
+            Account.type == AccountType.CREDIT_CARD,
+            Transaction.type == TransactionType.EXPENSE,
+            Transaction.is_transfer == False,
+            extract("year", Transaction.transaction_date) == ref_year,
+            extract("month", Transaction.transaction_date) == ref_month,
+        )
+        .group_by(Category.name, Category.color)
+        .order_by(func.sum(Transaction.amount).desc())
+    )
+    res = await session.execute(stmt)
+    rows = res.all()
+
+    # 2. Se não houver despesas no mês corrente, consulta as faturas/despesas gerais mais recentes
+    if not rows:
+        stmt_fallback = (
+            select(
+                func.coalesce(Category.name, "Outros / Sem Categoria").label("category_name"),
+                Category.color.label("category_color"),
+                func.coalesce(func.sum(Transaction.amount), Decimal("0.00")).label("total_amount"),
+                func.count(Transaction.id).label("tx_count"),
+            )
+            .join(Account, Transaction.account_id == Account.id)
+            .outerjoin(Category, Transaction.category_id == Category.id)
+            .where(
+                Account.type == AccountType.CREDIT_CARD,
+                Transaction.type == TransactionType.EXPENSE,
+                Transaction.is_transfer == False,
+            )
+            .group_by(Category.name, Category.color)
+            .order_by(func.sum(Transaction.amount).desc())
+            .limit(10)
+        )
+        res_fallback = await session.execute(stmt_fallback)
+        rows = res_fallback.all()
+
+    total_sum = sum((r.total_amount for r in rows), Decimal("0.00"))
+    palette = [
+        "#1DCDFE",  # Cyan ClariFin
+        "#21D0B2",  # Teal ClariFin
+        "#34F5C5",  # Mint ClariFin
+        "#38bdf8",  # Sky Blue
+        "#818cf8",  # Indigo
+        "#a78bfa",  # Purple
+        "#fbbf24",  # Amber
+        "#fb7185",  # Rose
+        "#94a3b8",  # Slate
+    ]
+
+    segments = []
+    for idx, row in enumerate(rows):
+        pct = float(row.total_amount / total_sum * 100) if total_sum > 0 else 0.0
+        color = row.category_color or palette[idx % len(palette)]
+        segments.append(
+            CategoryExpenseSegment(
+                label=row.category_name,
+                value=row.total_amount,
+                percentage=round(pct, 1),
+                color=color,
+                count=row.tx_count,
+            )
+        )
+
+    period_str = f"{ref_month:02d}/{ref_year}"
+    return CardExpensesResponse(
+        total_value=total_sum,
+        period=period_str,
+        segments=segments,
     )

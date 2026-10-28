@@ -179,3 +179,11 @@ async def test_full_financial_flow(client: AsyncClient):
         f"/api/v1/bills/{first_bill_id}/pay?payment_account_id={checking_id}"
     )
     assert double_pay_res.status_code == 400
+
+    # 10. Consulta a distribuição de gastos do cartão por categoria para o Donut Chart
+    card_expenses_res = await client.get("/api/v1/dashboard/card-expenses")
+    assert card_expenses_res.status_code == 200
+    card_expenses = card_expenses_res.json()
+    assert "total_value" in card_expenses
+    assert "segments" in card_expenses
+    assert isinstance(card_expenses["segments"], list)

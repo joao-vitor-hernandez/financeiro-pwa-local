@@ -82,3 +82,4 @@ jobs:
           file: backend/Dockerfile
           push: false
           tags: clarifin-backend:ci-test
+

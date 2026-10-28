@@ -5,13 +5,15 @@ import { ApiService } from '../../core/services/api.service';
 import { FinanceSyncService } from '../../core/services/finance-sync.service';
 import { DashboardSummary } from '../../core/models/summary.model';
 import { Transaction } from '../../core/models/transaction.model';
+import { CardExpensesResponse, CategoryExpenseSegment } from '../../core/models/card-expenses.model';
 import { PrivacyCurrencyPipe } from '../../core/pipes/privacy-currency.pipe';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+import { DonutChartComponent } from '../../shared/components/donut-chart/donut-chart.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, PrivacyCurrencyPipe, IconComponent],
+  imports: [CommonModule, RouterLink, PrivacyCurrencyPipe, IconComponent, DonutChartComponent],
   template: `
     <div class="dashboard-page">
       <!-- Cabeçalho de Boas-Vindas & Ações Rápidas -->
@@ -99,6 +101,45 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
               -{{ summary()?.monthly_expenses || '0.00' | privacyCurrency }}
             </span>
           </div>
+        </div>
+      </section>
+
+      <!-- Gráfico Donut: Distribuição Dinâmica de Gastos nos Cartões -->
+      <section class="chart-section">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">Gastos nos Cartões por Sessão</h2>
+            <p class="section-subtitle">Visualização dinâmica por área de gasto</p>
+          </div>
+          <span class="period-badge">{{ cardExpenses()?.period || 'Mês Atual' }}</span>
+        </div>
+
+        <div class="chart-card">
+          @if (isChartLoading()) {
+            <div class="chart-skeleton"></div>
+          } @else if (chartSegments().length === 0) {
+            <div class="empty-chart">
+              <div class="empty-chart-icon">
+                <app-icon name="chart" [size]="28" />
+              </div>
+              <p class="empty-chart-title">Nenhum gasto em cartões registrado</p>
+              <p class="empty-chart-subtitle">
+                Conecte seu banco ou faça um lançamento manual com cartão para visualizar a divisão.
+              </p>
+              <button class="btn btn-secondary demo-btn" (click)="loadSampleChartData()">
+                <app-icon name="repeat" [size]="14" />
+                <span>Simular Exemplo Interativo</span>
+              </button>
+            </div>
+          } @else {
+            <app-donut-chart
+              [data]="chartSegments()"
+              [totalValue]="cardExpenses()?.total_value || null"
+              [size]="240"
+              [strokeWidth]="26"
+              defaultLabel="Fatura Cartões"
+            />
+          }
         </div>
       </section>
 
@@ -304,6 +345,100 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       color: var(--text-muted) !important;
     }
 
+    .chart-section {
+      background-color: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 24px;
+
+      .section-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        margin-bottom: 12px;
+
+        .section-title {
+          font-size: 16px;
+          font-weight: 700;
+          color: var(--text-primary);
+        }
+
+        .section-subtitle {
+          font-size: 12px;
+          color: var(--text-secondary);
+          margin-top: 2px;
+        }
+
+        .period-badge {
+          font-size: 11px;
+          font-weight: 600;
+          padding: 2px 8px;
+          border-radius: var(--radius-full);
+          background-color: var(--bg-surface-elevated);
+          color: var(--text-secondary);
+          border: 1px solid var(--border-subtle);
+        }
+      }
+
+      .chart-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+      }
+
+      .empty-chart {
+        padding: 32px 16px;
+        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+
+        .empty-chart-icon {
+          width: 48px;
+          height: 48px;
+          border-radius: 50%;
+          background-color: var(--bg-surface-elevated);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--text-muted);
+          margin-bottom: 12px;
+        }
+
+        .empty-chart-title {
+          font-size: 14px;
+          font-weight: 600;
+          color: var(--text-primary);
+          margin-bottom: 4px;
+        }
+
+        .empty-chart-subtitle {
+          font-size: 12px;
+          color: var(--text-secondary);
+          max-width: 300px;
+          line-height: 1.4;
+          margin-bottom: 16px;
+        }
+
+        .demo-btn {
+          min-height: 36px;
+          padding: 0 14px;
+          font-size: 12px;
+        }
+      }
+
+      .chart-skeleton {
+        width: 220px;
+        height: 220px;
+        border-radius: 50%;
+        background-color: var(--bg-surface-elevated);
+        animation: pulse 1.5s infinite ease-in-out;
+        margin: 20px 0;
+      }
+    }
+
     .recent-section {
       background-color: var(--bg-surface);
       border: 1px solid var(--border-subtle);
@@ -479,6 +614,11 @@ export class DashboardComponent implements OnInit {
   recentTransactions = signal<Transaction[]>([]);
   isLoading = signal<boolean>(true);
 
+  // Donut Chart - Gastos nos Cartões por Sessão
+  cardExpenses = signal<CardExpensesResponse | null>(null);
+  chartSegments = signal<CategoryExpenseSegment[]>([]);
+  isChartLoading = signal<boolean>(true);
+
   ngOnInit(): void {
     this.fetchData();
     this.syncService.refresh$.subscribe(() => this.fetchData());
@@ -486,12 +626,24 @@ export class DashboardComponent implements OnInit {
 
   fetchData(): void {
     this.isLoading.set(true);
+    this.isChartLoading.set(true);
 
     this.api.getDashboardSummary().subscribe({
       next: (data) => {
         this.summary.set(data);
       },
       error: () => {},
+    });
+
+    this.api.getCardExpenses().subscribe({
+      next: (resp) => {
+        this.cardExpenses.set(resp);
+        this.chartSegments.set(resp.segments);
+        this.isChartLoading.set(false);
+      },
+      error: () => {
+        this.isChartLoading.set(false);
+      },
     });
 
     this.api.getTransactions(undefined, undefined, 5).subscribe({
@@ -503,6 +655,17 @@ export class DashboardComponent implements OnInit {
         this.isLoading.set(false);
       },
     });
+  }
+
+  loadSampleChartData(): void {
+    this.chartSegments.set([
+      { label: 'Alimentação & Mercado', value: '1240.50', color: '#1DCDFE', percentage: 43.2, count: 14 },
+      { label: 'Assinaturas & SaaS', value: '680.00', color: '#21D0B2', percentage: 23.7, count: 6 },
+      { label: 'Transporte & Uber', value: '430.20', color: '#34F5C5', percentage: 15.0, count: 12 },
+      { label: 'Lazer & Restaurantes', value: '310.00', color: '#fbbf24', percentage: 10.8, count: 4 },
+      { label: 'Saúde & Farmácia', value: '189.90', color: '#f43f5e', percentage: 6.6, count: 3 },
+      { label: 'Outros Lançamentos', value: '20.00', color: '#94a3b8', percentage: 0.7, count: 1 },
+    ]);
   }
 
   isResultPositive(): boolean {

@@ -19,3 +19,17 @@ class DashboardSummary(BaseModel):
     monthly_income: Decimal  # Entradas do mês corrente (excluindo transferências neutras)
     monthly_expenses: Decimal  # Saídas do mês corrente (excluindo transferências neutras)
     monthly_result: Decimal  # Resultado do mês (Receitas - Despesas)
+
+
+class CategoryExpenseSegment(BaseModel):
+    label: str
+    value: Decimal
+    percentage: float
+    color: str
+    count: int
+
+
+class CardExpensesResponse(BaseModel):
+    total_value: Decimal
+    period: str
+    segments: list[CategoryExpenseSegment]
