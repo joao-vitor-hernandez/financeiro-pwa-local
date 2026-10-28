@@ -17,7 +17,8 @@
 - [Fase 4: Exposição Segura (Cloudflare Tunnel)](#fase-4-exposição-segura-cloudflare-tunnel)
 - [Fase 5: Frontend Angular PWA (Design Anti-IA & Offline-First)](#fase-5-frontend-angular-pwa-design-anti-ia--offline-first)
 - [Fase 6: Esteira CI/CD (GitHub Actions)](#fase-6-esteira-cicd-github-actions)
-- [Fase 7: Hardening, Validação & Documentação de Portfólio](#fase-7-hardening-validação--documentação-de-portfólio)
+- [Fase 7: Inteligência Financeira, Orçamentos & Alertas Web Push](#fase-7-inteligência-financeira-orçamentos--alertas-web-push)
+- [Fase 8: Hardening, Validação & Documentação de Portfólio](#fase-8-hardening-validação--documentação-de-portfólio)
 
 ---
 
@@ -200,14 +201,55 @@ Concluída e validada. Workflows estruturados e ativados no repositório; testes
 
 ---
 
-## Fase 7: Hardening, Validação & Documentação de Portfólio
+## Fase 7: Inteligência Financeira, Orçamentos & Alertas Web Push
+> **Objetivo:** Implementar camadas proativas de planejamento e proteção financeira: tetos orçamentários por categoria, metas patrimoniais, gestão visual de regras de categorização, sincronização de lançamentos offline e notificações Web Push nativas para o PWA com alta prioridade no fuso de Brasília.
+
+- [ ] **7.1. Orçamentos Mensais e Tetos de Gastos por Categoria (Budgeting)**
+  - Tabela `budgets` no PostgreSQL (`category_id`, `month`, `year`, `limit_amount: NUMERIC(15, 2)`).
+  - Cálculo de consumo em tempo real com barra de progresso semafórica (Verde < 80%, Amarelo 80-99%, Vermelho >= 100%).
+  - Alerta antecipado no dashboard e em cards ao se aproximar ou ultrapassar o teto estipulado.
+  - Endpoints REST para criação, duplicação mensal e ajuste de orçamentos (`/api/v1/budgets`).
+
+- [ ] **7.2. Central de Metas Financeiras & Objetivos (Goals & Cofrinhos)**
+  - Tabela `financial_goals` para rastreamento de metas específicas (ex: "Reserva de Emergência", "Troca de Celular", "Viagem").
+  - Vínculo direto com contas do tipo `SAVINGS` (cofrinhos/caixinhas) ou montantes aportados.
+  - Componente de barra de progresso percentual, cálculo automático de prazo estimado para conclusão e histórico de aportes.
+
+- [ ] **7.3. Gerenciador Visual de Regras de Categorização no PWA**
+  - Interface visual no frontend conectada aos endpoints existentes (`/api/v1/rules`) para criar, editar, reordenar prioridade e excluir regras de regex.
+  - Simulador interativo na tela: testar texto de fatura bancária em tempo real e ver a higienização e categoria resultante antes de salvar a regra.
+
+- [ ] **7.4. Fila de Lançamento Offline Resiliente (Outbox Sync)**
+  - Fila local no IndexedDB (Dexie) para capturar lançamentos rápidos feitos no smartphone quando desconectado da rede.
+  - Worker de sincronização com detecção automática do evento `online` do navegador (`navigator.onLine` / `window.addEventListener('online')`).
+  - Envio sequencial e ordenado para a API com reconciliação idempotente e atualização dos saldos locais.
+
+- [ ] **7.5. Sistema de Alertas & Notificações Web Push de Vencimentos (PWA)**
+  - **Arquitetura Web Push (VAPID):**
+    - Par de chaves criptográficas VAPID gerado no backend (`pywebpush`).
+    - Registro e persistência da assinatura de push (`PushSubscription`) do Service Worker do Angular PWA no PostgreSQL (`user_push_subscriptions`).
+  - **Janelas de Disparo (Fuso de Brasília / `America/Sao_Paulo` - UTC-3):**
+    - **Dia Anterior ao Vencimento (D-1):** Notificação emitida às **09:00** e reforço às **18:00**.
+    - **Dia do Vencimento (D-0):** Notificação emitida às **09:00** e reforço vespertino às **18:00**.
+  - **Configuração de Alta Prioridade:**
+    - Header HTTP Web Push `Urgency: high`, payload com prioridade alta e vibração nativa (`vibrate: [200, 100, 200]`) para garantir despertar em tela bloqueada.
+    - Notificação informativa com nome da conta/cartão, valor formatado e botão de ação direta ("Abrir no ClariFin").
+  - **Agendador Cron Backend:**
+    - Rotina assíncrona agendada no `APScheduler` rodando às 09:00 e 18:00 (`timezone="America/Sao_Paulo"`), consultando faturas de cartão e contas com vencimento em D-1 ou D-0 com status `OPEN`.
+
+**Critério de Conclusão da Fase 7:**  
+Orçamentos com barras de progresso ativos no dashboard; metas cadastradas e monitoradas; regras editáveis pela UI; lançamentos offline sincronizando automaticamente ao recuperar conexão; notificações Web Push disparadas pontualmente às 09h e 18h no fuso de Brasília com alta prioridade em D-1 e D-0.
+
+---
+
+## Fase 8: Hardening, Validação & Documentação de Portfólio
 > **Objetivo:** Ajustes finais de performance, auditoria de segurança e consolidação do repositório como peça de destaque no portfólio.
 
-- [ ] **7.1. Auditoria de Performance (Lighthouse)**
+- [ ] **8.1. Auditoria de Performance (Lighthouse)**
   - Metas do PWA: Score 90+ em Performance, Acessibilidade, Melhores Práticas e PWA.
-- [ ] **7.2. Teste de Carga e Resiliência da Conexão**
+- [ ] **8.2. Teste de Carga e Resiliência da Conexão**
   - Validar reconexão automática do Cloudflare Tunnel após reinicialização do Homelab ou queda de internet residencial.
-- [ ] **7.3. README Executivo de Portfólio**
+- [ ] **8.3. README Executivo de Portfólio**
   - Diagrama de arquitetura de rede e fluxo de dados.
   - Demonstração em GIF/vídeo curto do PWA funcionando (incluindo Quick Add e Modo Privacidade).
   - Justificativa das decisões de engenharia (PostgreSQL, `Decimal`, Cloudflare Tunnel, R2, Angular Signals).
@@ -225,3 +267,6 @@ Concluída e validada. Workflows estruturados e ativados no repositório; testes
 | **Backup Resiliente** | `pg_dump` + `age` + Cloudflare R2 | Custo zero (10 GB free), zero egress fee e criptografia ponta a ponta. |
 | **Frontend PWA** | Angular + Signals + IndexedDB | Tipagem forte corporativa, reatividade nativa e funcionamento offline. |
 | **Deploy Automatizado** | GitHub Actions + Cloudflare Pages | CI/CD profissional que comprova proficiência DevOps no portfólio. |
+| **Alertas de Vencimento** | Web Push (VAPID) + `APScheduler` (`America/Sao_Paulo`) | Notificações push nativas de alta prioridade às 09h e 18h em D-1 e D-0 sem custos de provedores pagos (Twilio/SMS). |
+| **Lançamentos Offline** | Outbox Pattern (IndexedDB / Dexie) | Registro imediato de gastos sem internet com reconciliação idempotente automática ao reconectar. |
+| **Planejamento Orçamentário** | Metas por Categoria + Alertas Semafóricos | Controle proativo de teto de gastos antes do fechamento das faturas. |
