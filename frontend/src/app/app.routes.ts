@@ -20,6 +20,12 @@ export const routes: Routes = [
     title: 'Contas & Cartões | Financeiro PWA',
   },
   {
+    path: 'rules',
+    loadComponent: () =>
+      import('./features/rules/rules.component').then((m) => m.RulesComponent),
+    title: 'Regras de Categorização | ClariFin',
+  },
+  {
     path: '**',
     redirectTo: '',
   },

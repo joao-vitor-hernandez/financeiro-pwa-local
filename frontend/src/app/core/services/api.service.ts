@@ -23,6 +23,14 @@ import {
   FinancialGoalUpdate,
   GoalContributionCreate,
 } from '../models/goal.model';
+import {
+  CategorizationRule,
+  CategorizationRuleCreate,
+  CategorizationRuleUpdate,
+  RuleSimulationRequest,
+  RuleSimulationResponse,
+  RuleReorderRequest,
+} from '../models/rule.model';
 import { OfflineDbService } from './offline-db.service';
 
 @Injectable({
@@ -180,5 +188,31 @@ export class ApiService {
 
   deleteGoal(id: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/goals/${id}`);
+  }
+
+  // --- Regras de Categorização & Higienização (Fase 7.3) ---
+
+  getRules(): Observable<CategorizationRule[]> {
+    return this.http.get<CategorizationRule[]>(`${this.apiUrl}/rules`);
+  }
+
+  createRule(data: CategorizationRuleCreate): Observable<CategorizationRule> {
+    return this.http.post<CategorizationRule>(`${this.apiUrl}/rules`, data);
+  }
+
+  updateRule(id: string, data: CategorizationRuleUpdate): Observable<CategorizationRule> {
+    return this.http.patch<CategorizationRule>(`${this.apiUrl}/rules/${id}`, data);
+  }
+
+  deleteRule(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/rules/${id}`);
+  }
+
+  simulateRule(data: RuleSimulationRequest): Observable<RuleSimulationResponse> {
+    return this.http.post<RuleSimulationResponse>(`${this.apiUrl}/rules/simulate`, data);
+  }
+
+  reorderRules(data: RuleReorderRequest): Observable<CategorizationRule[]> {
+    return this.http.post<CategorizationRule[]>(`${this.apiUrl}/rules/reorder`, data);
   }
 }

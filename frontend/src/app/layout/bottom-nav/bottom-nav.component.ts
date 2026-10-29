@@ -27,6 +27,11 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         <app-icon name="wallet" [size]="20" />
         <span>Contas</span>
       </a>
+
+      <a routerLink="/rules" routerLinkActive="active" class="nav-item">
+        <app-icon name="sliders" [size]="20" />
+        <span>Regras</span>
+      </a>
     </nav>
   `,
   styles: `

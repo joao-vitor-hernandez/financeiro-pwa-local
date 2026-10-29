@@ -40,4 +40,4 @@ class CategorizationRule(Base):
     )
 
     # Relacionamento com a Categoria alvo
-    category: Mapped[Category] = relationship("Category")
+    category: Mapped[Category] = relationship("Category", lazy="selectin")

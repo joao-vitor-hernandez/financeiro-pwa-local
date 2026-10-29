@@ -217,9 +217,12 @@ Concluída e validada. Workflows estruturados e ativados no repositório; testes
   - Componente de barra de progresso percentual, cálculo automático de prazo estimado para conclusão, ritmo mensal necessário (`monthly_pace_needed`) e histórico de aportes.
   - Widget interativo no dashboard (`FinancialGoalsWidgetComponent`) com modais de criação, edição, aportes/resgates e vínculo de cofrinho.
 
-- [ ] **7.3. Gerenciador Visual de Regras de Categorização no PWA**
-  - Interface visual no frontend conectada aos endpoints existentes (`/api/v1/rules`) para criar, editar, reordenar prioridade e excluir regras de regex.
-  - Simulador interativo na tela: testar texto de fatura bancária em tempo real e ver a higienização e categoria resultante antes de salvar a regra.
+- [x] **7.3. Gerenciador Visual de Regras de Categorização no PWA**
+  - Tela dedicada (`/rules`) e item na barra de navegação (`BottomNavComponent`) com ícone e atalho rápido.
+  - Interface visual conectada aos endpoints (`/api/v1/rules`) para criar, editar, reordenar prioridades e excluir regras.
+  - Simulador interativo na tela (Playground): testa texto de fatura bancária em tempo real contra todas as regras ativas, exibindo a higienização de prefixos (`PAG*`), a categoria correspondente e a descrição final.
+  - Validador de sintaxe Regex em tempo real no modal com mini-tester embutido antes de salvar a regra.
+  - Reordenação em lote via API (`POST /api/v1/rules/reorder`) para controle fino da precedência contábil.
 
 - [ ] **7.4. Fila de Lançamento Offline Resiliente (Outbox Sync)**
   - Fila local no IndexedDB (Dexie) para capturar lançamentos rápidos feitos no smartphone quando desconectado da rede.
