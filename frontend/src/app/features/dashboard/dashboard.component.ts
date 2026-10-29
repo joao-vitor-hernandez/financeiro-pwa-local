@@ -8,12 +8,15 @@ import { Transaction } from '../../core/models/transaction.model';
 import { CardExpensesResponse, CategoryExpenseSegment } from '../../core/models/card-expenses.model';
 import { SavingsEvolutionResponse, SavingsPoint } from '../../core/models/savings-evolution.model';
 import { BudgetSummaryResponse } from '../../core/models/budget.model';
+import { FinancialGoalSummaryResponse, FinancialGoalCreate, FinancialGoalUpdate, GoalContributionCreate } from '../../core/models/goal.model';
 import { Category } from '../../core/models/category.model';
+import { Account } from '../../core/models/account.model';
 import { PrivacyCurrencyPipe } from '../../core/pipes/privacy-currency.pipe';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { DonutChartComponent } from '../../shared/components/donut-chart/donut-chart.component';
 import { SavingsEvolutionChartComponent } from '../../shared/components/savings-evolution-chart/savings-evolution-chart.component';
 import { CategoryBudgetsWidgetComponent } from '../../shared/components/category-budgets-widget/category-budgets-widget.component';
+import { FinancialGoalsWidgetComponent } from '../../shared/components/financial-goals-widget/financial-goals-widget.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -26,6 +29,7 @@ import { CategoryBudgetsWidgetComponent } from '../../shared/components/category
     DonutChartComponent,
     SavingsEvolutionChartComponent,
     CategoryBudgetsWidgetComponent,
+    FinancialGoalsWidgetComponent,
   ],
   template: `
     <div class="dashboard-page">
@@ -214,6 +218,19 @@ import { CategoryBudgetsWidgetComponent } from '../../shared/components/category
           (onSaveBudget)="handleSaveBudget($event)"
           (onDeleteBudget)="handleDeleteBudget($event)"
           (onCopyPreviousMonth)="handleCopyPreviousMonth($event)"
+        />
+      </section>
+
+      <!-- Central de Metas & Cofrinhos (Fase 7.2) -->
+      <section class="goals-section">
+        <app-financial-goals-widget
+          [summary]="goalsSummary()"
+          [accounts]="accounts()"
+          [isLoading]="isGoalsLoading()"
+          (onCreateGoal)="handleCreateGoal($event)"
+          (onUpdateGoal)="handleUpdateGoal($event)"
+          (onContribute)="handleGoalContribution($event)"
+          (onDeleteGoal)="handleDeleteGoal($event)"
         />
       </section>
 
@@ -598,6 +615,10 @@ import { CategoryBudgetsWidgetComponent } from '../../shared/components/category
       margin-bottom: 28px;
     }
 
+    .goals-section {
+      margin-bottom: 28px;
+    }
+
     .recent-section {
       background-color: var(--bg-surface);
       border: 1px solid var(--border-subtle);
@@ -790,6 +811,11 @@ export class DashboardComponent implements OnInit {
   categories = signal<Category[]>([]);
   isBudgetsLoading = signal<boolean>(true);
 
+  // Central de Metas & Cofrinhos (Fase 7.2)
+  goalsSummary = signal<FinancialGoalSummaryResponse | null>(null);
+  accounts = signal<Account[]>([]);
+  isGoalsLoading = signal<boolean>(true);
+
   isZeroSavings = computed(() => {
     const pts = this.savingsPoints();
     if (!pts || pts.length === 0) return true;
@@ -806,10 +832,20 @@ export class DashboardComponent implements OnInit {
     this.isChartLoading.set(true);
     this.isSavingsLoading.set(true);
     this.isBudgetsLoading.set(true);
+    this.isGoalsLoading.set(true);
 
     this.api.getDashboardSummary().subscribe({
       next: (data) => {
         this.summary.set(data);
+      },
+      error: () => {},
+    });
+
+    this.loadGoals();
+
+    this.api.getAccounts().subscribe({
+      next: (accs) => {
+        this.accounts.set(accs);
       },
       error: () => {},
     });
@@ -964,6 +1000,47 @@ export class DashboardComponent implements OnInit {
     this.api.copyPreviousMonthBudgets(event).subscribe({
       next: (res) => this.budgetSummary.set(res),
       error: (err) => alert(err?.error?.detail || 'Erro ao copiar orçamentos do mês anterior.'),
+    });
+  }
+
+  loadGoals(): void {
+    this.isGoalsLoading.set(true);
+    this.api.getGoals().subscribe({
+      next: (g) => {
+        this.goalsSummary.set(g);
+        this.isGoalsLoading.set(false);
+      },
+      error: () => {
+        this.isGoalsLoading.set(false);
+      },
+    });
+  }
+
+  handleCreateGoal(data: FinancialGoalCreate): void {
+    this.api.createGoal(data).subscribe({
+      next: () => this.loadGoals(),
+      error: (err: unknown) => console.error('Erro ao criar meta:', err),
+    });
+  }
+
+  handleUpdateGoal(event: { id: string; data: FinancialGoalUpdate }): void {
+    this.api.updateGoal(event.id, event.data).subscribe({
+      next: () => this.loadGoals(),
+      error: (err: unknown) => console.error('Erro ao atualizar meta:', err),
+    });
+  }
+
+  handleGoalContribution(event: { id: string; data: GoalContributionCreate }): void {
+    this.api.contributeToGoal(event.id, event.data).subscribe({
+      next: () => this.loadGoals(),
+      error: (err: unknown) => console.error('Erro ao registrar aporte:', err),
+    });
+  }
+
+  handleDeleteGoal(id: string): void {
+    this.api.deleteGoal(id).subscribe({
+      next: () => this.loadGoals(),
+      error: (err: unknown) => console.error('Erro ao remover meta:', err),
     });
   }
 

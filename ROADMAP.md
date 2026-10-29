@@ -211,10 +211,11 @@ Concluída e validada. Workflows estruturados e ativados no repositório; testes
   - Alerta antecipado no dashboard e em cards ao se aproximar ou ultrapassar o teto estipulado.
   - Endpoints REST para criação, duplicação mensal e ajuste de orçamentos (`/api/v1/budgets`).
 
-- [ ] **7.2. Central de Metas Financeiras & Objetivos (Goals & Cofrinhos)**
+- [x] **7.2. Central de Metas Financeiras & Objetivos (Goals & Cofrinhos)**
   - Tabela `financial_goals` para rastreamento de metas específicas (ex: "Reserva de Emergência", "Troca de Celular", "Viagem").
-  - Vínculo direto com contas do tipo `SAVINGS` (cofrinhos/caixinhas) ou montantes aportados.
-  - Componente de barra de progresso percentual, cálculo automático de prazo estimado para conclusão e histórico de aportes.
+  - Vínculo direto com contas do tipo `SAVINGS` (cofrinhos/caixinhas) ou montantes aportados (`goal_contributions`).
+  - Componente de barra de progresso percentual, cálculo automático de prazo estimado para conclusão, ritmo mensal necessário (`monthly_pace_needed`) e histórico de aportes.
+  - Widget interativo no dashboard (`FinancialGoalsWidgetComponent`) com modais de criação, edição, aportes/resgates e vínculo de cofrinho.
 
 - [ ] **7.3. Gerenciador Visual de Regras de Categorização no PWA**
   - Interface visual no frontend conectada aos endpoints existentes (`/api/v1/rules`) para criar, editar, reordenar prioridade e excluir regras de regex.

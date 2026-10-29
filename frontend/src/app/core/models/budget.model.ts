@@ -44,3 +44,4 @@ export interface BudgetSummaryResponse {
   warning_count: number;
   exceeded_count: number;
 }
+

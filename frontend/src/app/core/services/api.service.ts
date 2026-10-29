@@ -16,6 +16,13 @@ import {
   BudgetSummaryResponse,
   BudgetUpdate,
 } from '../models/budget.model';
+import {
+  FinancialGoal,
+  FinancialGoalCreate,
+  FinancialGoalSummaryResponse,
+  FinancialGoalUpdate,
+  GoalContributionCreate,
+} from '../models/goal.model';
 import { OfflineDbService } from './offline-db.service';
 
 @Injectable({
@@ -143,5 +150,35 @@ export class ApiService {
 
   copyPreviousMonthBudgets(data: BudgetCopyPreviousMonthRequest): Observable<BudgetSummaryResponse> {
     return this.http.post<BudgetSummaryResponse>(`${this.apiUrl}/budgets/copy-previous-month`, data);
+  }
+
+  // --- Metas Financeiras & Objetivos (Fase 7.2) ---
+
+  getGoals(): Observable<FinancialGoalSummaryResponse> {
+    return this.http.get<FinancialGoalSummaryResponse>(`${this.apiUrl}/goals`);
+  }
+
+  createGoal(data: FinancialGoalCreate): Observable<FinancialGoal> {
+    return this.http.post<FinancialGoal>(`${this.apiUrl}/goals`, data);
+  }
+
+  getGoal(id: string): Observable<FinancialGoal> {
+    return this.http.get<FinancialGoal>(`${this.apiUrl}/goals/${id}`);
+  }
+
+  updateGoal(id: string, data: FinancialGoalUpdate): Observable<FinancialGoal> {
+    return this.http.patch<FinancialGoal>(`${this.apiUrl}/goals/${id}`, data);
+  }
+
+  contributeToGoal(id: string, data: GoalContributionCreate): Observable<FinancialGoal> {
+    return this.http.post<FinancialGoal>(`${this.apiUrl}/goals/${id}/contribute`, data);
+  }
+
+  addGoalContribution(id: string, data: GoalContributionCreate): Observable<FinancialGoal> {
+    return this.contributeToGoal(id, data);
+  }
+
+  deleteGoal(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/goals/${id}`);
   }
 }

@@ -972,3 +972,4 @@ export class CategoryBudgetsWidgetComponent {
     this.closeCopyModal();
   }
 }
+
