@@ -195,3 +195,4 @@ async def seed_categories() -> dict[str, Category]:
 
 if __name__ == "__main__":
     asyncio.run(seed_categories())
+

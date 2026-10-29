@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { FinanceSyncService } from '../../core/services/finance-sync.service';
+import { OfflineDbService } from '../../core/services/offline-db.service';
+import { OutboxSyncService } from '../../core/services/outbox-sync.service';
 import { Account } from '../../core/models/account.model';
 import { Category } from '../../core/models/category.model';
 import { TransactionType } from '../../core/models/transaction.model';
@@ -17,7 +19,15 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       <div class="drawer-overlay" (click)="close()">
         <div class="drawer-sheet" (click)="$event.stopPropagation()">
           <header class="drawer-header">
-            <h2 class="drawer-title">Novo Lançamento</h2>
+            <div>
+              <h2 class="drawer-title">Novo Lançamento</h2>
+              @if (!outboxSync.isOnline()) {
+                <span class="offline-tag">
+                  <app-icon name="repeat" [size]="12" />
+                  <span>Modo Offline (Irá para a fila)</span>
+                </span>
+              }
+            </div>
             <button class="btn btn-ghost btn-icon close-btn" (click)="close()">
               <app-icon name="x" [size]="20" />
             </button>
@@ -167,6 +177,9 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
               >
                 @if (isSubmitting()) {
                   <span>Gravando...</span>
+                } @else if (!outboxSync.isOnline()) {
+                  <app-icon name="repeat" [size]="18" />
+                  <span>Salvar na Fila Offline</span>
                 } @else {
                   <app-icon name="check" [size]="18" />
                   <span>Confirmar Lançamento</span>
@@ -223,6 +236,20 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       font-size: 18px;
       font-weight: 600;
       letter-spacing: -0.02em;
+    }
+
+    .offline-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #fbbf24;
+      background: rgba(251, 191, 36, 0.12);
+      border: 1px solid rgba(251, 191, 36, 0.25);
+      padding: 2px 8px;
+      border-radius: 10px;
+      margin-top: 4px;
     }
 
     .close-btn {
@@ -353,6 +380,8 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 })
 export class QuickAddComponent implements OnInit {
   syncService = inject(FinanceSyncService);
+  outboxSync = inject(OutboxSyncService);
+  private offlineDb = inject(OfflineDbService);
   private api = inject(ApiService);
 
   accounts = signal<Account[]>([]);
@@ -394,14 +423,33 @@ export class QuickAddComponent implements OnInit {
     this.api.getAccounts().subscribe({
       next: (accs) => {
         this.accounts.set(accs);
+        this.offlineDb.cacheAccounts(accs);
         if (accs.length > 0 && !this.selectedAccountId) {
           this.selectedAccountId = accs[0].id;
+        }
+      },
+      error: async () => {
+        const cached = await this.offlineDb.getCachedAccounts();
+        if (cached.length > 0) {
+          this.accounts.set(cached);
+          if (!this.selectedAccountId) {
+            this.selectedAccountId = cached[0].id;
+          }
         }
       },
     });
 
     this.api.getCategories().subscribe({
-      next: (cats) => this.categories.set(cats),
+      next: (cats) => {
+        this.categories.set(cats);
+        this.offlineDb.cacheCategories(cats);
+      },
+      error: async () => {
+        const cached = await this.offlineDb.getCachedCategories();
+        if (cached.length > 0) {
+          this.categories.set(cached);
+        }
+      },
     });
   }
 
@@ -437,7 +485,7 @@ export class QuickAddComponent implements OnInit {
     return true;
   }
 
-  submit(): void {
+  async submit(): Promise<void> {
     if (!this.isFormValid() || this.isSubmitting()) return;
 
     this.isSubmitting.set(true);
@@ -446,6 +494,7 @@ export class QuickAddComponent implements OnInit {
     // Formata o valor monetário com precisão decimal exata
     const sanitizedAmount = parseFloat(this.amountInput.replace(',', '.')).toFixed(2);
     const isTransfer = this.txType() === 'TRANSFER';
+    const clientTxId = crypto.randomUUID();
 
     const payload = {
       account_id: this.selectedAccountId,
@@ -457,18 +506,42 @@ export class QuickAddComponent implements OnInit {
       is_transfer: isTransfer,
       transfer_target_account_id: isTransfer ? this.targetAccountId : null,
       installments: this.isCreditCardSelected() && this.txType() === 'EXPENSE' ? Number(this.installments) : 1,
+      client_tx_id: clientTxId,
     };
 
+    const accName = this.accounts().find((a) => a.id === this.selectedAccountId)?.name;
+    const catName = this.categories().find((c) => c.id === this.selectedCategoryId)?.name;
+
+    // 1. Se estiver explicitamente OFFLINE: enfileira direto no IndexedDB
+    if (!this.outboxSync.isOnline()) {
+      await this.outboxSync.enqueue(payload, accName, catName);
+      this.isSubmitting.set(false);
+      this.close();
+      return;
+    }
+
+    // 2. Se estiver ONLINE: tenta enviar via API com fallback para a fila se a rede oscilar
     this.api.createTransaction(payload).subscribe({
       next: () => {
         this.isSubmitting.set(false);
         this.syncService.notifyDataChanged();
         this.close();
       },
-      error: (err) => {
-        this.isSubmitting.set(false);
-        const detail = err?.error?.detail || 'Erro ao registrar transação. Verifique os dados.';
-        this.errorMessage.set(typeof detail === 'string' ? detail : JSON.stringify(detail));
+      error: async (err: unknown) => {
+        const httpErr = err as { status?: number; error?: { detail?: string } };
+        const isNetworkDrop = !httpErr.status || httpErr.status === 0;
+
+        if (isNetworkDrop) {
+          // Conexão caiu durante a requisição: salva com segurança na fila offline
+          await this.outboxSync.enqueue(payload, accName, catName);
+          this.isSubmitting.set(false);
+          this.close();
+        } else {
+          // Erro contábil ou validação (ex: saldo insuficiente, conta inválida)
+          this.isSubmitting.set(false);
+          const detail = httpErr?.error?.detail || 'Erro ao registrar transação. Verifique os dados.';
+          this.errorMessage.set(typeof detail === 'string' ? detail : JSON.stringify(detail));
+        }
       },
     });
   }

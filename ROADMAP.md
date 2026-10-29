@@ -224,10 +224,12 @@ Concluída e validada. Workflows estruturados e ativados no repositório; testes
   - Validador de sintaxe Regex em tempo real no modal com mini-tester embutido antes de salvar a regra.
   - Reordenação em lote via API (`POST /api/v1/rules/reorder`) para controle fino da precedência contábil.
 
-- [ ] **7.4. Fila de Lançamento Offline Resiliente (Outbox Sync)**
-  - Fila local no IndexedDB (Dexie) para capturar lançamentos rápidos feitos no smartphone quando desconectado da rede.
-  - Worker de sincronização com detecção automática do evento `online` do navegador (`navigator.onLine` / `window.addEventListener('online')`).
-  - Envio sequencial e ordenado para a API com reconciliação idempotente e atualização dos saldos locais.
+- [x] **7.4. Fila de Lançamento Offline Resiliente (Outbox Sync)**
+  - Tabela `outbox` no IndexedDB (Dexie v2) com schema `++id, client_tx_id, status, created_at` e cache local de contas e categorias.
+  - Serviço reativo `OutboxSyncService` monitorando eventos `online`/`offline` do navegador com disparo automático do worker de sincronização ao reconectar.
+  - Idempotência contábil de ponta a ponta no backend (`client_tx_id` em `TransactionCreate`), garantindo que retentativas de rede não dupliquem lançamentos nem debitem contas duas vezes.
+  - Integração no `QuickAddComponent`: gravações offline instantâneas com feedback visual, fallback automático se a conexão oscilar no envio e suporte completo sem internet.
+  - Indicador visual no cabeçalho (`HeaderComponent`): badge de status Offline e botão de sincronização com contador em tempo real de lançamentos pendentes na fila.
 
 - [ ] **7.5. Sistema de Alertas & Notificações Web Push de Vencimentos (PWA)**
   - **Arquitetura Web Push (VAPID):**

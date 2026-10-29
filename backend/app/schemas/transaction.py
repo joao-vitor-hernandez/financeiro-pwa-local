@@ -28,6 +28,9 @@ class TransactionCreate(TransactionBase):
     is_transfer: bool = False
     transfer_target_account_id: uuid.UUID | None = None
 
+    # Chave de idempotência para sincronização offline resiliente (Outbox)
+    client_tx_id: str | None = None
+
 
 class TransactionResponse(TransactionBase):
     id: uuid.UUID

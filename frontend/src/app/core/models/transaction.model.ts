@@ -30,4 +30,5 @@ export interface TransactionCreate {
   installments?: number;
   is_transfer?: boolean;
   transfer_target_account_id?: string | null;
+  client_tx_id?: string | null;
 }

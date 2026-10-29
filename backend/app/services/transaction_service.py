@@ -21,6 +21,14 @@ async def process_transaction_creation(
     Orquestra a criação de transações aplicando regras de precisão contábil,
     partidas dobradas (transferências) e parcelamentos em faturas de cartão.
     """
+    # 0. Verificação de Idempotência (Outbox Sync Resiliente)
+    if data.client_tx_id:
+        existing_stmt = select(Transaction).where(Transaction.external_id == data.client_tx_id)
+        existing_res = await session.execute(existing_stmt)
+        existing_txs = existing_res.scalars().all()
+        if existing_txs:
+            return list(existing_txs)
+
     # 1. Buscar a conta principal
     stmt = select(Account).where(Account.id == data.account_id)
     res = await session.execute(stmt)
@@ -70,6 +78,7 @@ async def process_transaction_creation(
             is_transfer=True,
             transfer_target_account_id=target_account.id,
             transfer_pair_id=pair_id,
+            external_id=data.client_tx_id,
         )
 
         # Perna 2: Crédito na conta de destino
@@ -83,6 +92,7 @@ async def process_transaction_creation(
             is_transfer=True,
             transfer_target_account_id=account.id,
             transfer_pair_id=pair_id,
+            external_id=f"{data.client_tx_id}_credit" if data.client_tx_id else None,
         )
 
         session.add_all([tx_debit, tx_credit])
@@ -127,6 +137,7 @@ async def process_transaction_creation(
                 installment_number=installment_num,
                 total_installments=data.installments,
                 installment_identifier=group_id,
+                external_id=f"{data.client_tx_id}_{installment_num}" if data.client_tx_id else None,
             )
             created_transactions.append(tx)
 
@@ -161,6 +172,7 @@ async def process_transaction_creation(
         transaction_date=data.transaction_date,
         type=data.type,
         is_transfer=False,
+        external_id=data.client_tx_id,
     )
     session.add(tx)
     await session.flush()

@@ -187,3 +187,69 @@ async def test_full_financial_flow(client: AsyncClient):
     assert "total_value" in card_expenses
     assert "segments" in card_expenses
     assert isinstance(card_expenses["segments"], list)
+
+
+@pytest.mark.asyncio
+async def test_offline_idempotent_transaction_creation(client: AsyncClient):
+    """
+    Fase 7.4: Garante que reenvios de lançamentos offline com mesmo client_tx_id
+    sejam idempotentes e não dupliquem transações nem debitem o saldo duas vezes.
+    """
+    # 1. Cria conta corrente com R$ 500,00
+    acc_res = await client.post(
+        "/api/v1/accounts",
+        json={
+            "name": "Conta Idempotência",
+            "type": "CHECKING",
+            "initial_balance": "500.00",
+            "currency": "BRL",
+        },
+    )
+    assert acc_res.status_code == 201
+    acc_id = acc_res.json()["id"]
+
+    client_tx_id = "offline-outbox-uuid-999"
+
+    # 2. Primeiro envio (como se tivesse saído da fila offline)
+    tx_res1 = await client.post(
+        "/api/v1/transactions",
+        json={
+            "account_id": acc_id,
+            "description": "Almoço na rua",
+            "amount": "45.00",
+            "transaction_date": datetime.now(UTC).isoformat(),
+            "type": "EXPENSE",
+            "client_tx_id": client_tx_id,
+        },
+    )
+    assert tx_res1.status_code == 201
+    created_txs1 = tx_res1.json()
+    assert len(created_txs1) == 1
+    tx_id_1 = created_txs1[0]["id"]
+
+    # Saldo deve ter caído de 500 para 455
+    acc_check1 = (await client.get(f"/api/v1/accounts/{acc_id}")).json()
+    assert Decimal(acc_check1["balance"]) == Decimal("455.00")
+
+    # 3. Segundo envio com a MESMA chave de idempotência (ex: retry de rede)
+    tx_res2 = await client.post(
+        "/api/v1/transactions",
+        json={
+            "account_id": acc_id,
+            "description": "Almoço na rua",
+            "amount": "45.00",
+            "transaction_date": datetime.now(UTC).isoformat(),
+            "type": "EXPENSE",
+            "client_tx_id": client_tx_id,
+        },
+    )
+    assert tx_res2.status_code == 201
+    created_txs2 = tx_res2.json()
+    assert len(created_txs2) == 1
+    # Deve retornar a mesma transação existente
+    assert created_txs2[0]["id"] == tx_id_1
+
+    # Saldo DEVE continuar em 455.00, sem debitar pela segunda vez!
+    acc_check2 = (await client.get(f"/api/v1/accounts/{acc_id}")).json()
+    assert Decimal(acc_check2["balance"]) == Decimal("455.00")
+

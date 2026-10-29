@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { PrivacyService } from '../../core/services/privacy.service';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
+import { OutboxSyncService } from '../../core/services/outbox-sync.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 
 @Component({
@@ -14,9 +15,25 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         <img src="logo.png" alt="ClariFin Logo" class="brand-logo" width="28" height="28" />
         <span class="brand-name">ClariFin</span>
         <span class="badge badge-neutral env-badge">Homelab</span>
+        @if (!outboxSync.isOnline()) {
+          <span class="badge offline-badge">Offline</span>
+        }
       </div>
 
       <div class="header-actions">
+        <!-- Indicador & Botão de Sincronização da Fila Offline -->
+        @if (outboxSync.pendingCount() > 0) {
+          <button
+            class="btn btn-ghost outbox-sync-btn"
+            [class.rotating]="outboxSync.isSyncing()"
+            (click)="outboxSync.syncPending()"
+            [title]="outboxSync.pendingCount() + ' lançamento(s) na fila offline. Clique para sincronizar agora.'"
+          >
+            <app-icon name="repeat" [size]="16" />
+            <span class="outbox-count-chip">{{ outboxSync.pendingCount() }}</span>
+          </button>
+        }
+
         <!-- Botão de Sincronização Open Finance -->
         <button
           class="btn btn-ghost btn-icon"
@@ -86,12 +103,45 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         font-size: 11px;
         padding: 2px 6px;
       }
+
+      .offline-badge {
+        font-size: 10px;
+        font-weight: 700;
+        text-transform: uppercase;
+        background: rgba(251, 191, 36, 0.15);
+        color: #fbbf24;
+        border: 1px solid rgba(251, 191, 36, 0.3);
+        padding: 2px 6px;
+        border-radius: 6px;
+      }
     }
 
     .header-actions {
       display: flex;
       align-items: center;
       gap: 6px;
+    }
+
+    .outbox-sync-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 8px;
+      border-radius: 8px;
+      background: rgba(29, 205, 254, 0.12);
+      color: #1DCDFE;
+      border: 1px solid rgba(29, 205, 254, 0.25);
+      min-height: 32px;
+      cursor: pointer;
+    }
+
+    .outbox-count-chip {
+      font-size: 11px;
+      font-weight: 700;
+      background: #1DCDFE;
+      color: #09090b;
+      padding: 1px 5px;
+      border-radius: 8px;
     }
 
     .rotating {
@@ -107,6 +157,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
 export class HeaderComponent {
   privacy = inject(PrivacyService);
   auth = inject(AuthService);
+  outboxSync = inject(OutboxSyncService);
   private api = inject(ApiService);
   isSyncing = signal<boolean>(false);
 
