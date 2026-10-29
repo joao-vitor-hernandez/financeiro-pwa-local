@@ -7,10 +7,13 @@ import { DashboardSummary } from '../../core/models/summary.model';
 import { Transaction } from '../../core/models/transaction.model';
 import { CardExpensesResponse, CategoryExpenseSegment } from '../../core/models/card-expenses.model';
 import { SavingsEvolutionResponse, SavingsPoint } from '../../core/models/savings-evolution.model';
+import { BudgetSummaryResponse } from '../../core/models/budget.model';
+import { Category } from '../../core/models/category.model';
 import { PrivacyCurrencyPipe } from '../../core/pipes/privacy-currency.pipe';
 import { IconComponent } from '../../shared/components/icon/icon.component';
 import { DonutChartComponent } from '../../shared/components/donut-chart/donut-chart.component';
 import { SavingsEvolutionChartComponent } from '../../shared/components/savings-evolution-chart/savings-evolution-chart.component';
+import { CategoryBudgetsWidgetComponent } from '../../shared/components/category-budgets-widget/category-budgets-widget.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -22,6 +25,7 @@ import { SavingsEvolutionChartComponent } from '../../shared/components/savings-
     IconComponent,
     DonutChartComponent,
     SavingsEvolutionChartComponent,
+    CategoryBudgetsWidgetComponent,
   ],
   template: `
     <div class="dashboard-page">
@@ -199,6 +203,18 @@ import { SavingsEvolutionChartComponent } from '../../shared/components/savings-
             />
           }
         </div>
+      </section>
+
+      <!-- Painel de Orçamentos por Categoria (Budgeting - Fase 7.1) -->
+      <section class="budget-section">
+        <app-category-budgets-widget
+          [summary]="budgetSummary()"
+          [categories]="categories()"
+          [isLoading]="isBudgetsLoading()"
+          (onSaveBudget)="handleSaveBudget($event)"
+          (onDeleteBudget)="handleDeleteBudget($event)"
+          (onCopyPreviousMonth)="handleCopyPreviousMonth($event)"
+        />
       </section>
 
       <!-- Transações Recentes -->
@@ -578,6 +594,10 @@ import { SavingsEvolutionChartComponent } from '../../shared/components/savings-
       }
     }
 
+    .budget-section {
+      margin-bottom: 28px;
+    }
+
     .recent-section {
       background-color: var(--bg-surface);
       border: 1px solid var(--border-subtle);
@@ -765,6 +785,11 @@ export class DashboardComponent implements OnInit {
   isSavingsLoading = signal<boolean>(true);
   isSavingsSimulating = signal<boolean>(false);
 
+  // Orçamentos por Categoria (Budgeting - Fase 7.1)
+  budgetSummary = signal<BudgetSummaryResponse | null>(null);
+  categories = signal<Category[]>([]);
+  isBudgetsLoading = signal<boolean>(true);
+
   isZeroSavings = computed(() => {
     const pts = this.savingsPoints();
     if (!pts || pts.length === 0) return true;
@@ -780,10 +805,28 @@ export class DashboardComponent implements OnInit {
     this.isLoading.set(true);
     this.isChartLoading.set(true);
     this.isSavingsLoading.set(true);
+    this.isBudgetsLoading.set(true);
 
     this.api.getDashboardSummary().subscribe({
       next: (data) => {
         this.summary.set(data);
+      },
+      error: () => {},
+    });
+
+    this.api.getBudgets().subscribe({
+      next: (b) => {
+        this.budgetSummary.set(b);
+        this.isBudgetsLoading.set(false);
+      },
+      error: () => {
+        this.isBudgetsLoading.set(false);
+      },
+    });
+
+    this.api.getCategories().subscribe({
+      next: (cats) => {
+        this.categories.set(cats);
       },
       error: () => {},
     });
@@ -887,6 +930,40 @@ export class DashboardComponent implements OnInit {
       error: () => {
         this.isChartLoading.set(false);
       },
+    });
+  }
+
+  loadBudgets(month?: number, year?: number): void {
+    this.isBudgetsLoading.set(true);
+    this.api.getBudgets(month, year).subscribe({
+      next: (b) => {
+        this.budgetSummary.set(b);
+        this.isBudgetsLoading.set(false);
+      },
+      error: () => {
+        this.isBudgetsLoading.set(false);
+      },
+    });
+  }
+
+  handleSaveBudget(event: { category_id: string; limit_amount: string; month: number; year: number }): void {
+    this.api.createBudget(event).subscribe({
+      next: () => this.loadBudgets(event.month, event.year),
+      error: (err) => console.error('Erro ao salvar orçamento:', err),
+    });
+  }
+
+  handleDeleteBudget(budgetId: string): void {
+    this.api.deleteBudget(budgetId).subscribe({
+      next: () => this.loadBudgets(),
+      error: (err) => console.error('Erro ao remover orçamento:', err),
+    });
+  }
+
+  handleCopyPreviousMonth(event: { source_month: number; source_year: number; target_month: number; target_year: number }): void {
+    this.api.copyPreviousMonthBudgets(event).subscribe({
+      next: (res) => this.budgetSummary.set(res),
+      error: (err) => alert(err?.error?.detail || 'Erro ao copiar orçamentos do mês anterior.'),
     });
   }
 

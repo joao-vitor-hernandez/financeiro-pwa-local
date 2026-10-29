@@ -11,6 +11,7 @@ from app.routers import (
     accounts,
     auth,
     bills,
+    budgets,
     categories,
     dashboard,
     rules,
@@ -96,6 +97,7 @@ app.include_router(transactions.router, prefix="/api/v1", dependencies=auth_deps
 app.include_router(dashboard.router, prefix="/api/v1", dependencies=auth_deps)
 app.include_router(rules.router, prefix="/api/v1", dependencies=auth_deps)
 app.include_router(sync.router, prefix="/api/v1", dependencies=auth_deps)
+app.include_router(budgets.router, prefix="/api/v1", dependencies=auth_deps)
 
 
 @app.get("/health", tags=["Health"])

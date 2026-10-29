@@ -205,7 +205,7 @@ Concluída e validada. Workflows estruturados e ativados no repositório; testes
 ## Fase 7: Inteligência Financeira, Orçamentos & Alertas Web Push
 > **Objetivo:** Implementar camadas proativas de planejamento e proteção financeira: tetos orçamentários por categoria, metas patrimoniais, gestão visual de regras de categorização, sincronização de lançamentos offline e notificações Web Push nativas para o PWA com alta prioridade no fuso de Brasília.
 
-- [ ] **7.1. Orçamentos Mensais e Tetos de Gastos por Categoria (Budgeting)**
+- [x] **7.1. Orçamentos Mensais e Tetos de Gastos por Categoria (Budgeting)**
   - Tabela `budgets` no PostgreSQL (`category_id`, `month`, `year`, `limit_amount: NUMERIC(15, 2)`).
   - Cálculo de consumo em tempo real com barra de progresso semafórica (Verde < 80%, Amarelo 80-99%, Vermelho >= 100%).
   - Alerta antecipado no dashboard e em cards ao se aproximar ou ultrapassar o teto estipulado.

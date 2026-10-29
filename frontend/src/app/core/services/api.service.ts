@@ -9,6 +9,13 @@ import { CreditCardBill } from '../models/bill.model';
 import { DashboardSummary } from '../models/summary.model';
 import { CardExpensesResponse } from '../models/card-expenses.model';
 import { SavingsEvolutionResponse } from '../models/savings-evolution.model';
+import {
+  Budget,
+  BudgetCopyPreviousMonthRequest,
+  BudgetCreate,
+  BudgetSummaryResponse,
+  BudgetUpdate,
+} from '../models/budget.model';
 import { OfflineDbService } from './offline-db.service';
 
 @Injectable({
@@ -111,5 +118,30 @@ export class ApiService {
     let params = new HttpParams().set('months', months.toString());
     if (refDate) params = params.set('ref_date', refDate);
     return this.http.get<SavingsEvolutionResponse>(`${this.apiUrl}/dashboard/savings-evolution`, { params });
+  }
+
+  // --- Orçamentos Mensais (Budgeting - Fase 7.1) ---
+
+  getBudgets(month?: number, year?: number): Observable<BudgetSummaryResponse> {
+    let params = new HttpParams();
+    if (month) params = params.set('month', month.toString());
+    if (year) params = params.set('year', year.toString());
+    return this.http.get<BudgetSummaryResponse>(`${this.apiUrl}/budgets`, { params });
+  }
+
+  createBudget(data: BudgetCreate): Observable<Budget> {
+    return this.http.post<Budget>(`${this.apiUrl}/budgets`, data);
+  }
+
+  updateBudget(budgetId: string, data: BudgetUpdate): Observable<Budget> {
+    return this.http.patch<Budget>(`${this.apiUrl}/budgets/${budgetId}`, data);
+  }
+
+  deleteBudget(budgetId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/budgets/${budgetId}`);
+  }
+
+  copyPreviousMonthBudgets(data: BudgetCopyPreviousMonthRequest): Observable<BudgetSummaryResponse> {
+    return this.http.post<BudgetSummaryResponse>(`${this.apiUrl}/budgets/copy-previous-month`, data);
   }
 }
