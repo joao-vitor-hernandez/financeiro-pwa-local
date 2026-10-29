@@ -32,6 +32,13 @@ class Settings(BaseSettings):
                 f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@"
                 f"{self.POSTGRES_HOST}:{self.POSTGRES_PORT}/{self.POSTGRES_DB}"
             )
+        if self.ENVIRONMENT == "production":
+            if "dev_secret_key" in self.JWT_SECRET_KEY or len(self.JWT_SECRET_KEY) < 32:
+                raise ValueError(
+                    "VIOLAÇÃO CRÍTICA DE SEGURANÇA: Em ambiente de produção (ENVIRONMENT='production'), "
+                    "a JWT_SECRET_KEY deve ser uma chave forte exclusiva (mínimo 32 caracteres) "
+                    "e não pode utilizar o valor padrão de desenvolvimento."
+                )
         return self
 
     # JWT & Auth

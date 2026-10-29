@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 
 import app.models  # Garante que todos os modelos sejam importados
@@ -47,19 +47,38 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS Middleware
-# Em dev: permite requisições do Angular local (http://localhost:4200)
-# Em prod: aceita conexões do Cloudflare Pages via regex
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    """
+    Middleware defensivo de cabeçalhos de segurança (OWASP Secure Headers).
+    Protege contra clickjacking, MIME sniffing, injeção de scripts e vazamento de referrer.
+    """
+    response: Response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    if not settings.DEBUG:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
+
+
+# CORS Middleware com restrição estrita de origens
+# Em dev: aceita requisições do Angular local (http://localhost:4200)
+# Em prod: aceita apenas o domínio próprio e subdomínios oficiais do projeto no Cloudflare Pages
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:4200",
         "http://127.0.0.1:4200",
         "https://financeiro.entrefilas.com.br",
+        "https://financeiro-pwa-local.pages.dev",
     ],
-    allow_origin_regex=r"^https:\/\/.*\.pages\.dev$",
+    allow_origin_regex=r"^https:\/\/([a-zA-Z0-9\-]+\.)?financeiro-pwa-local\.pages\.dev$",
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
 
