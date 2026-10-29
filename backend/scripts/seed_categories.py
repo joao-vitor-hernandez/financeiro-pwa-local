@@ -6,9 +6,10 @@ import sys
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from sqlalchemy import select
+
 from app.core.database import AsyncSessionLocal
-from app.models.category import Category, CategoryType
 from app.models.categorization_rule import CategorizationRule
+from app.models.category import Category, CategoryType
 
 DEFAULT_CATEGORIES = [
     # Despesas (10)

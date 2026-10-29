@@ -3,12 +3,14 @@ import { PrivacyService } from '../../core/services/privacy.service';
 import { ApiService } from '../../core/services/api.service';
 import { AuthService } from '../../core/services/auth.service';
 import { OutboxSyncService } from '../../core/services/outbox-sync.service';
+import { WebPushService } from '../../core/services/web-push.service';
 import { IconComponent } from '../../shared/components/icon/icon.component';
+import { PushModalComponent } from '../../shared/components/push-modal/push-modal.component';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [IconComponent],
+  imports: [IconComponent, PushModalComponent],
   template: `
     <header class="app-header">
       <div class="header-brand">
@@ -33,6 +35,18 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
             <span class="outbox-count-chip">{{ outboxSync.pendingCount() }}</span>
           </button>
         }
+
+        <!-- Botão Notificações & Alertas Web Push (Fase 7.5) -->
+        <button
+          class="btn btn-ghost btn-icon push-btn"
+          (click)="isPushModalOpen.set(true)"
+          title="Alertas & Notificações Web Push de Vencimentos"
+        >
+          <app-icon name="bell" [size]="18" />
+          @if (webPush.state().isSubscribed) {
+            <span class="push-active-dot"></span>
+          }
+        </button>
 
         <!-- Botão de Sincronização Open Finance -->
         <button
@@ -63,6 +77,12 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
         </button>
       </div>
     </header>
+
+    <!-- Modal de Gerenciamento de Web Push -->
+    <app-push-modal
+      [isOpen]="isPushModalOpen()"
+      (close)="isPushModalOpen.set(false)"
+    />
   `,
   styles: `
     .app-header {
@@ -122,6 +142,21 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       gap: 6px;
     }
 
+    .push-btn {
+      position: relative;
+    }
+
+    .push-active-dot {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: #21D0B2;
+      box-shadow: 0 0 6px #21D0B2;
+    }
+
     .outbox-sync-btn {
       display: inline-flex;
       align-items: center;
@@ -158,8 +193,11 @@ export class HeaderComponent {
   privacy = inject(PrivacyService);
   auth = inject(AuthService);
   outboxSync = inject(OutboxSyncService);
+  webPush = inject(WebPushService);
   private api = inject(ApiService);
+
   isSyncing = signal<boolean>(false);
+  isPushModalOpen = signal<boolean>(false);
 
   triggerSync(): void {
     if (this.isSyncing()) return;

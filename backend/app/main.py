@@ -15,11 +15,13 @@ from app.routers import (
     categories,
     dashboard,
     goals,
+    push,
     rules,
     sync,
     transactions,
     webhooks,
 )
+from app.services.push_worker import start_push_scheduler, stop_push_scheduler
 from app.services.sync_worker import start_sync_scheduler, stop_sync_scheduler
 
 
@@ -33,9 +35,13 @@ async def lifespan(app: FastAPI):
     if settings.PLUGGY_CLIENT_ID and settings.PLUGGY_CLIENT_SECRET:
         start_sync_scheduler(interval_hours=12)
 
+    # Iniciar agendador de notificações push de vencimentos (09:00 e 18:00 no fuso de Brasília)
+    start_push_scheduler()
+
     yield
 
-    # Finalização: parar agendador e fechar pool de conexões
+    # Finalização: parar agendadores e fechar pool de conexões
+    stop_push_scheduler()
     stop_sync_scheduler()
     await engine.dispose()
 
@@ -100,6 +106,7 @@ app.include_router(rules.router, prefix="/api/v1", dependencies=auth_deps)
 app.include_router(sync.router, prefix="/api/v1", dependencies=auth_deps)
 app.include_router(budgets.router, prefix="/api/v1", dependencies=auth_deps)
 app.include_router(goals.router, prefix="/api/v1", dependencies=auth_deps)
+app.include_router(push.router, prefix="/api/v1", dependencies=auth_deps)
 
 
 @app.get("/health", tags=["Health"])

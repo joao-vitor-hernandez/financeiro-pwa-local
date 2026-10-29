@@ -1,10 +1,10 @@
 from __future__ import annotations
 
+import enum
+import uuid
 from datetime import date, datetime
 from decimal import Decimal
-import enum
 from typing import TYPE_CHECKING
-import uuid
 
 from sqlalchemy import (
     Boolean,

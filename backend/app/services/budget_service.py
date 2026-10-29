@@ -1,7 +1,7 @@
 import calendar
+import uuid
 from datetime import UTC, datetime
 from decimal import Decimal
-import uuid
 
 from fastapi import HTTPException, status
 from sqlalchemy import func, select

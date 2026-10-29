@@ -1,6 +1,6 @@
+import uuid
 from datetime import UTC, date, datetime
 from decimal import Decimal
-import uuid
 
 from fastapi import HTTPException, status
 from sqlalchemy import select

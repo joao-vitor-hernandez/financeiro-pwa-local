@@ -1,16 +1,16 @@
+import uuid
 from datetime import UTC, datetime, timedelta
 from decimal import Decimal
-import uuid
+
 import pytest
 from httpx import AsyncClient
 from jose import jwt
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.config import Settings, settings
+from app.core.config import Settings
 from app.core.security import create_access_token
-from app.models.account import Account, AccountType
-from app.models.transaction import Transaction
+from app.models.account import Account
 from app.models.user import User
 
 

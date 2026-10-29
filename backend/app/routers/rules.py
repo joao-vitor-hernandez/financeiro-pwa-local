@@ -6,8 +6,8 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
-from app.models.category import Category
 from app.models.categorization_rule import CategorizationRule
+from app.models.category import Category
 from app.schemas.categorization_rule import (
     CategorizationRuleCreate,
     CategorizationRuleResponse,

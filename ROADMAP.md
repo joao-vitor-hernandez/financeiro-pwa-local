@@ -202,7 +202,7 @@ Concluída e validada. Workflows estruturados e ativados no repositório; testes
 
 ---
 
-## Fase 7: Inteligência Financeira, Orçamentos & Alertas Web Push
+## Fase 7: Inteligência Financeira, Orçamentos & Alertas Web Push *(Concluída)*
 > **Objetivo:** Implementar camadas proativas de planejamento e proteção financeira: tetos orçamentários por categoria, metas patrimoniais, gestão visual de regras de categorização, sincronização de lançamentos offline e notificações Web Push nativas para o PWA com alta prioridade no fuso de Brasília.
 
 - [x] **7.1. Orçamentos Mensais e Tetos de Gastos por Categoria (Budgeting)**
@@ -231,7 +231,7 @@ Concluída e validada. Workflows estruturados e ativados no repositório; testes
   - Integração no `QuickAddComponent`: gravações offline instantâneas com feedback visual, fallback automático se a conexão oscilar no envio e suporte completo sem internet.
   - Indicador visual no cabeçalho (`HeaderComponent`): badge de status Offline e botão de sincronização com contador em tempo real de lançamentos pendentes na fila.
 
-- [ ] **7.5. Sistema de Alertas & Notificações Web Push de Vencimentos (PWA)**
+- [x] **7.5. Sistema de Alertas & Notificações Web Push de Vencimentos (PWA)**
   - **Arquitetura Web Push (VAPID):**
     - Par de chaves criptográficas VAPID gerado no backend (`pywebpush`).
     - Registro e persistência da assinatura de push (`PushSubscription`) do Service Worker do Angular PWA no PostgreSQL (`user_push_subscriptions`).

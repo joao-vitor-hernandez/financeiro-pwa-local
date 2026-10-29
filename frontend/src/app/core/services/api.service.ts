@@ -31,6 +31,13 @@ import {
   RuleSimulationResponse,
   RuleReorderRequest,
 } from '../models/rule.model';
+import {
+  PushSubscriptionCreate,
+  PushSubscriptionResponse,
+  PushTestRequest,
+  PushTestResponse,
+  VapidPublicKeyResponse,
+} from '../models/push-notification.model';
 import { OfflineDbService } from './offline-db.service';
 
 @Injectable({
@@ -214,5 +221,32 @@ export class ApiService {
 
   reorderRules(data: RuleReorderRequest): Observable<CategorizationRule[]> {
     return this.http.post<CategorizationRule[]>(`${this.apiUrl}/rules/reorder`, data);
+  }
+
+  // --- Alertas & Notificações Web Push de Vencimentos (Fase 7.5) ---
+
+  getVapidPublicKey(): Observable<VapidPublicKeyResponse> {
+    return this.http.get<VapidPublicKeyResponse>(`${this.apiUrl}/push/vapid-public-key`);
+  }
+
+  subscribePush(data: PushSubscriptionCreate): Observable<PushSubscriptionResponse> {
+    return this.http.post<PushSubscriptionResponse>(`${this.apiUrl}/push/subscribe`, data);
+  }
+
+  unsubscribePush(endpoint: string): Observable<{ success: boolean; message: string }> {
+    return this.http.post<{ success: boolean; message: string }>(`${this.apiUrl}/push/unsubscribe`, {
+      endpoint,
+    });
+  }
+
+  sendTestPush(data?: PushTestRequest): Observable<PushTestResponse> {
+    return this.http.post<PushTestResponse>(`${this.apiUrl}/push/test`, data || {});
+  }
+
+  triggerDueBillsCheck(): Observable<{ success: boolean; alerts_dispatched_count: number; alerts: any[] }> {
+    return this.http.post<{ success: boolean; alerts_dispatched_count: number; alerts: any[] }>(
+      `${this.apiUrl}/push/trigger-due-check`,
+      {}
+    );
   }
 }

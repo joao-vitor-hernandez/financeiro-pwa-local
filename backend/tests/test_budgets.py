@@ -1,6 +1,5 @@
 from datetime import UTC, datetime
 from decimal import Decimal
-import uuid
 
 import pytest
 from httpx import AsyncClient

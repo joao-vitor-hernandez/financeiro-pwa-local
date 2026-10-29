@@ -63,6 +63,13 @@ class Settings(BaseSettings):
     # Cloudflare Tunnel
     CLOUDFLARE_TUNNEL_TOKEN: str | None = None
 
+    # Web Push Notifications (VAPID - Fase 7.5)
+    VAPID_PUBLIC_KEY: str = (
+        "BOEKyXax1uxbQU6nAzsi5Bw4grKDBKh7vqSimWdkdRdrxWbcqQLGs6OzOpivWwA_WvgUV_LXxaxeKjhi_ZgOxZs"
+    )
+    VAPID_PRIVATE_KEY: str = "AqM2bXcRNhvGLIjSld6G7Svg35Cm4ifwiuGJ2RAfW7g"
+    VAPID_CLAIMS_EMAIL: str = "mailto:jvhernandez.dev@gmail.com"
+
     model_config = SettingsConfigDict(
         env_file=str(ENV_FILE), env_file_encoding="utf-8", extra="ignore"
     )

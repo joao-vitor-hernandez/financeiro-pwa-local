@@ -144,6 +144,16 @@ import { Component, input } from '@angular/core';
           <line x1="18" x2="12" y1="9" y2="15" />
           <line x1="12" x2="18" y1="9" y2="15" />
         }
+        @case ('bell') {
+          <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
+          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+        }
+        @case ('bell-off') {
+          <path d="M8.7 3A6 6 0 0 1 18 8a21.3 21.3 0 0 0 .6 5" />
+          <path d="M17 17H3s3-2 3-9a4.67 4.67 0 0 1 .3-1.7" />
+          <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
+          <line x1="2" x2="22" y1="2" y2="22" />
+        }
         @default {
           <circle cx="12" cy="12" r="10" />
         }
