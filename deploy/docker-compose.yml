@@ -43,8 +43,8 @@ services:
       postgres:
         condition: service_healthy
     environment:
-      ENVIRONMENT: production
-      DEBUG: "False"
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      DEBUG: "${DEBUG:-True}"
       POSTGRES_USER: ${POSTGRES_USER:-postgres_user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_password_dev_123}
       POSTGRES_DB: ${POSTGRES_DB:-financeiro_db}
@@ -56,6 +56,9 @@ services:
       PLUGGY_CLIENT_ID: ${PLUGGY_CLIENT_ID:-}
       PLUGGY_CLIENT_SECRET: ${PLUGGY_CLIENT_SECRET:-}
       PLUGGY_BASE_URL: ${PLUGGY_BASE_URL:-https://api.pluggy.ai}
+    volumes:
+      - ../backend/app:/app/app
+      - ../backend/alembic:/app/alembic
     ports:
       # Exposto na porta 8000 do host para acesso local ou teste direto
       - "127.0.0.1:8000:8000"
