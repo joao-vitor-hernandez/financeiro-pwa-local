@@ -4,7 +4,12 @@ import { catchError, from, map, Observable, of, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Account, AccountCreate } from '../models/account.model';
 import { Category, CategoryCreate } from '../models/category.model';
-import { Transaction, TransactionCreate } from '../models/transaction.model';
+import {
+  OFXImportResponse,
+  OFXPreviewResponse,
+  Transaction,
+  TransactionCreate,
+} from '../models/transaction.model';
 import { CreditCardBill } from '../models/bill.model';
 import { DashboardSummary } from '../models/summary.model';
 import { CardExpensesResponse } from '../models/card-expenses.model';
@@ -101,6 +106,20 @@ export class ApiService {
 
   createTransaction(data: TransactionCreate): Observable<Transaction[]> {
     return this.http.post<Transaction[]>(`${this.apiUrl}/transactions`, data);
+  }
+
+  previewOFXImport(file: File, accountId: string): Observable<OFXPreviewResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('account_id', accountId);
+    return this.http.post<OFXPreviewResponse>(`${this.apiUrl}/transactions/import-ofx/preview`, formData);
+  }
+
+  importOFX(file: File, accountId: string): Observable<OFXImportResponse> {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('account_id', accountId);
+    return this.http.post<OFXImportResponse>(`${this.apiUrl}/transactions/import-ofx`, formData);
   }
 
   getBills(accountId: string): Observable<CreditCardBill[]> {

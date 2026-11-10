@@ -31,6 +31,8 @@ class TransactionCreate(TransactionBase):
     # Chave de idempotência para sincronização offline resiliente (Outbox)
     client_tx_id: str | None = None
 
+    model_config = ConfigDict(extra="forbid")
+
 
 class TransactionResponse(TransactionBase):
     id: uuid.UUID
@@ -48,7 +50,42 @@ class TransactionResponse(TransactionBase):
 
     external_id: str | None = None
     metadata_json: dict[str, Any] | None = None
+
+    # Conectores Bancários / OFX
+    fitid: str | None = None
+    import_batch_id: uuid.UUID | None = None
+
     created_at: datetime
     updated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class OFXTransactionPreview(BaseModel):
+    fitid: str
+    description: str
+    amount: Decimal
+    transaction_date: datetime
+    type: TransactionType
+    is_duplicate: bool
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class OFXPreviewResponse(BaseModel):
+    total_found: int
+    new_count: int
+    duplicated_count: int
+    transactions: list[OFXTransactionPreview]
+
+    model_config = ConfigDict(extra="forbid")
+
+
+class OFXImportResponse(BaseModel):
+    import_batch_id: uuid.UUID
+    total_found: int
+    imported_count: int
+    duplicated_count: int
+    transactions: list[TransactionResponse]
+
+    model_config = ConfigDict(extra="forbid")

@@ -1,12 +1,18 @@
 import uuid
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, File, Form, Query, UploadFile, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.models.transaction import Transaction
-from app.schemas.transaction import TransactionCreate, TransactionResponse
+from app.schemas.transaction import (
+    OFXImportResponse,
+    OFXPreviewResponse,
+    TransactionCreate,
+    TransactionResponse,
+)
+from app.services.ofx_service import OFXImportService
 from app.services.transaction_service import process_transaction_creation
 
 router = APIRouter(prefix="/transactions", tags=["Transactions"])
@@ -43,3 +49,50 @@ async def create_transaction(tx_in: TransactionCreate, db: AsyncSession = Depend
     """
     transactions = await process_transaction_creation(session=db, data=tx_in)
     return transactions
+
+
+@router.post(
+    "/import-ofx/preview",
+    response_model=OFXPreviewResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def preview_ofx_import(
+    file: UploadFile = File(...),
+    account_id: uuid.UUID = Form(...),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Pré-visualização da importação de extrato bancário (.ofx ou .csv).
+    Informa a quantidade de novos lançamentos e transações já existentes (duplicatas)
+    antes de efetivar a gravação no banco de dados.
+    """
+    content = await file.read()
+    return await OFXImportService.preview_import(
+        session=db,
+        account_id=account_id,
+        content_bytes=content,
+        filename=file.filename or "statement.ofx",
+    )
+
+
+@router.post(
+    "/import-ofx",
+    response_model=OFXImportResponse,
+    status_code=status.HTTP_200_OK,
+)
+async def import_ofx(
+    file: UploadFile = File(...),
+    account_id: uuid.UUID = Form(...),
+    db: AsyncSession = Depends(get_db),
+):
+    """
+    Importa transações bancárias a partir de um arquivo OFX ou CSV com deduplicação atômica.
+    Transações com FITID já registrado na conta são ignoradas silenciosamente sem duplicar saldo.
+    """
+    content = await file.read()
+    return await OFXImportService.execute_import(
+        session=db,
+        account_id=account_id,
+        content_bytes=content,
+        filename=file.filename or "statement.ofx",
+    )

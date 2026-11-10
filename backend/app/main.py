@@ -7,6 +7,7 @@ import app.models  # Garante que todos os modelos sejam importados
 from app.core.auth_dependency import get_current_user
 from app.core.config import settings
 from app.core.database import Base, engine
+from app.core.errors import setup_exception_handlers
 from app.routers import (
     accounts,
     auth,
@@ -54,6 +55,9 @@ app = FastAPI(
     redoc_url=None,
     lifespan=lifespan,
 )
+
+# Configurar tratamento de exceções no padrão RFC 7807 / RFC 9457 (Problem Details)
+setup_exception_handlers(app)
 
 
 @app.middleware("http")

@@ -52,6 +52,18 @@ class Settings(BaseSettings):
     PLUGGY_CLIENT_SECRET: str | None = None
     PLUGGY_BASE_URL: str = "https://api.pluggy.ai"
 
+    # Mercado Pago API
+    MERCADOPAGO_ACCESS_TOKEN: str | None = None
+    MERCADOPAGO_USER_ID: str | None = None
+    MERCADOPAGO_BASE_URL: str = "https://api.mercadopago.com"
+
+    # Banco Inter API (mTLS)
+    INTER_CLIENT_ID: str | None = None
+    INTER_CLIENT_SECRET: str | None = None
+    INTER_CERT_PATH: str | None = None
+    INTER_KEY_PATH: str | None = None
+    INTER_BASE_URL: str = "https://cdpj.partners.bancointer.com.br"
+
     # Cloudflare R2
     R2_ACCOUNT_ID: str | None = None
     R2_ACCESS_KEY_ID: str | None = None

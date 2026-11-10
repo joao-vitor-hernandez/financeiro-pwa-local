@@ -1,3 +1,4 @@
+import os
 from collections.abc import AsyncGenerator
 
 import pytest_asyncio
@@ -13,9 +14,10 @@ from app.main import app
 from app.models.user import User
 
 # Conexão de teste apontando para o banco de teste dedicado no PostgreSQL
+test_port = os.environ.get("TEST_POSTGRES_PORT", os.environ.get("POSTGRES_PORT", "5433"))
 TEST_DATABASE_URL = (
     f"postgresql+asyncpg://{settings.POSTGRES_USER}:{settings.POSTGRES_PASSWORD}@"
-    f"{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/financeiro_test_db"
+    f"{settings.POSTGRES_HOST}:{test_port}/financeiro_test_db"
 )
 
 test_engine = create_async_engine(

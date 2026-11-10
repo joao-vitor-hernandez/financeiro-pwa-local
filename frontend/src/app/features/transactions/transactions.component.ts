@@ -3,7 +3,8 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { FinanceSyncService } from '../../core/services/finance-sync.service';
-import { Transaction } from '../../core/models/transaction.model';
+import { OFXImportResponse, Transaction } from '../../core/models/transaction.model';
+import { OfxImportModalComponent } from './ofx-import-modal/ofx-import-modal.component';
 import { Account } from '../../core/models/account.model';
 import { Category } from '../../core/models/category.model';
 import { PrivacyCurrencyPipe } from '../../core/pipes/privacy-currency.pipe';
@@ -14,12 +15,23 @@ type FilterType = 'ALL' | 'EXPENSE' | 'INCOME' | 'TRANSFER';
 @Component({
   selector: 'app-transactions',
   standalone: true,
-  imports: [CommonModule, FormsModule, PrivacyCurrencyPipe, IconComponent],
+  imports: [CommonModule, FormsModule, PrivacyCurrencyPipe, IconComponent, OfxImportModalComponent],
   template: `
     <div class="transactions-page">
       <header class="page-header">
-        <h1 class="page-title">Extrato de Transações</h1>
-        <p class="page-subtitle">Histórico contábil unificado de todas as contas</p>
+        <div class="header-left">
+          <h1 class="page-title">Extrato de Transações</h1>
+          <p class="page-subtitle">Histórico contábil unificado de todas as contas</p>
+        </div>
+        <button
+          type="button"
+          class="btn-import-ofx"
+          (click)="isImportModalOpen.set(true)"
+          title="Importar extrato bancário OFX ou CSV"
+        >
+          <app-icon name="upload" [size]="16" />
+          <span>Importar OFX</span>
+        </button>
       </header>
 
       <!-- Barra de Busca & Filtros de Tipo -->
@@ -156,6 +168,14 @@ type FilterType = 'ALL' | 'EXPENSE' | 'INCOME' | 'TRANSFER';
           }
         }
       </section>
+
+      <!-- Modal de Importação de Extratos OFX / CSV -->
+      <app-ofx-import-modal
+        [isOpen]="isImportModalOpen()"
+        [accounts]="accounts()"
+        (closed)="isImportModalOpen.set(false)"
+        (imported)="onImportSuccess($event)"
+      />
     </div>
   `,
   styles: `
@@ -167,6 +187,15 @@ type FilterType = 'ALL' | 'EXPENSE' | 'INCOME' | 'TRANSFER';
 
     .page-header {
       margin-bottom: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+
+      .header-left {
+        display: flex;
+        flex-direction: column;
+      }
 
       .page-title {
         font-size: 22px;
@@ -179,6 +208,28 @@ type FilterType = 'ALL' | 'EXPENSE' | 'INCOME' | 'TRANSFER';
         font-size: 13px;
         color: var(--text-secondary);
         margin-top: 2px;
+      }
+    }
+
+    .btn-import-ofx {
+      min-height: 40px;
+      padding: 0 14px;
+      border-radius: 8px;
+      background-color: #18181b;
+      border: 1px solid #27272a;
+      color: #f4f4f5;
+      font-size: 13px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background-color: #27272a;
+        border-color: #3f3f46;
       }
     }
 
@@ -448,6 +499,13 @@ type FilterType = 'ALL' | 'EXPENSE' | 'INCOME' | 'TRANSFER';
 export class TransactionsComponent implements OnInit {
   private api = inject(ApiService);
   private syncService = inject(FinanceSyncService);
+
+  isImportModalOpen = signal<boolean>(false);
+
+  onImportSuccess(res: OFXImportResponse): void {
+    this.loadData();
+    this.syncService.notifyDataChanged();
+  }
 
   transactions = signal<Transaction[]>([]);
   accounts = signal<Account[]>([]);

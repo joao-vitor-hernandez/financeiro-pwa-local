@@ -85,6 +85,12 @@ class Transaction(Base):
     external_id: Mapped[str | None] = mapped_column(String(150), nullable=True)
     metadata_json: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
 
+    # Importador OFX / Conectores Bancários (FITID universal e Lote de importação)
+    fitid: Mapped[str | None] = mapped_column(String(120), unique=True, index=True, nullable=True)
+    import_batch_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), index=True, nullable=True
+    )
+
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
