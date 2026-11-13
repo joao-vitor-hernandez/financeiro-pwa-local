@@ -10,6 +10,10 @@ import { SavingsEvolutionResponse, SavingsPoint } from '../../core/models/saving
 import { BudgetSummaryResponse } from '../../core/models/budget.model';
 import { FinancialGoalSummaryResponse, FinancialGoalCreate, FinancialGoalUpdate, GoalContributionCreate } from '../../core/models/goal.model';
 import { CashFlowForecastResponse } from '../../core/models/forecast.model';
+import {
+  AssetAllocationSummary,
+  AssetAllocationTargetUpdate,
+} from '../../core/models/asset-allocation.model';
 import { Category } from '../../core/models/category.model';
 import { Account } from '../../core/models/account.model';
 import { PrivacyCurrencyPipe } from '../../core/pipes/privacy-currency.pipe';
@@ -19,6 +23,7 @@ import { SavingsEvolutionChartComponent } from '../../shared/components/savings-
 import { CategoryBudgetsWidgetComponent } from '../../shared/components/category-budgets-widget/category-budgets-widget.component';
 import { FinancialGoalsWidgetComponent } from '../../shared/components/financial-goals-widget/financial-goals-widget.component';
 import { CashFlowForecastWidgetComponent } from '../../shared/components/cash-flow-forecast-widget/cash-flow-forecast-widget.component';
+import { AssetAllocationWidgetComponent } from '../../shared/components/asset-allocation-widget/asset-allocation-widget.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -33,6 +38,7 @@ import { CashFlowForecastWidgetComponent } from '../../shared/components/cash-fl
     CategoryBudgetsWidgetComponent,
     FinancialGoalsWidgetComponent,
     CashFlowForecastWidgetComponent,
+    AssetAllocationWidgetComponent,
   ],
   template: `
     <div class="dashboard-page">
@@ -168,6 +174,15 @@ import { CashFlowForecastWidgetComponent } from '../../shared/components/cash-fl
             </div>
           }
         }
+      </section>
+
+      <!-- Alocação de Ativos & Benchmark CDI (Fase 8.4 - Ghostfolio) -->
+      <section class="allocation-section">
+        <app-asset-allocation-widget
+          [allocation]="assetAllocation()"
+          [isLoading]="isAllocationLoading()"
+          (onUpdateTargets)="handleUpdateAllocationTargets($event)"
+        />
       </section>
 
       <!-- Gráfico Donut: Distribuição Dinâmica de Gastos nos Cartões -->
@@ -831,6 +846,10 @@ export class DashboardComponent implements OnInit {
   forecast = signal<CashFlowForecastResponse | null>(null);
   isForecastLoading = signal<boolean>(true);
 
+  // Alocação de Ativos & Benchmark CDI (Fase 8.4 - Ghostfolio)
+  assetAllocation = signal<AssetAllocationSummary | null>(null);
+  isAllocationLoading = signal<boolean>(true);
+
   isZeroSavings = computed(() => {
     const pts = this.savingsPoints();
     if (!pts || pts.length === 0) return true;
@@ -849,6 +868,9 @@ export class DashboardComponent implements OnInit {
     this.isBudgetsLoading.set(true);
     this.isGoalsLoading.set(true);
     this.isForecastLoading.set(true);
+    this.isAllocationLoading.set(true);
+
+    this.loadAssetAllocation();
 
     this.api.getCashFlowForecast().subscribe({
       next: (fc) => {
@@ -1067,6 +1089,30 @@ export class DashboardComponent implements OnInit {
     this.api.deleteGoal(id).subscribe({
       next: () => this.loadGoals(),
       error: (err: unknown) => console.error('Erro ao remover meta:', err),
+    });
+  }
+
+  loadAssetAllocation(): void {
+    this.isAllocationLoading.set(true);
+    this.api.getAssetAllocation().subscribe({
+      next: (alloc) => {
+        this.assetAllocation.set(alloc);
+        this.isAllocationLoading.set(false);
+      },
+      error: () => {
+        this.isAllocationLoading.set(false);
+      },
+    });
+  }
+
+  handleUpdateAllocationTargets(targets: AssetAllocationTargetUpdate): void {
+    this.api.updateAssetAllocationTargets(targets).subscribe({
+      next: () => {
+        this.loadAssetAllocation();
+      },
+      error: (err: unknown) => {
+        console.error('Erro ao atualizar metas de alocação:', err);
+      },
     });
   }
 

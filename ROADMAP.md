@@ -292,7 +292,7 @@ Orçamentos com barras de progresso ativos no dashboard; metas cadastradas e mon
 >
 > ---
 
-## Fase 8: Inteligência Preditiva & Gestão Patrimonial Avançada (Inspirada no Open-Source) *(Em Execução)*
+## Fase 8: Inteligência Preditiva & Gestão Patrimonial Avançada (Inspirada no Open-Source) *(Concluída)*
 > **Objetivo:** Incorporar as melhores práticas arquiteturais consolidadas por Actual Budget, Firefly III e Ghostfolio, trazendo previsibilidade de fluxo de caixa, limite diário de gastos, anexos de recibos no Cloudflare R2 e benchmarks de rentabilidade.
 
 - [x] **8.1. Previsão de Saldo a 30 Dias (*Cash Flow Forecast* - Inspirado no Firefly III)**
@@ -311,13 +311,14 @@ Orçamentos com barras de progresso ativos no dashboard; metas cadastradas e mon
   - Armazenamento no bucket Cloudflare R2 via URLs pré-assinadas com zero custo de tráfego de saída (*zero egress fees*) e fallback automático local.
   - Visualizador de recibos e comprovantes integrado ao Extrato Inteligente (`AttachmentModalComponent`).
 
-- [ ] **8.4. Alocação de Ativos & Benchmark CDI dos Cofrinhos (Inspirado no Ghostfolio)**
-  - Definição de alocação patrimonial alvo (*Target Allocation*): percentual ideal entre Dinheiro em Conta, Cofrinhos (Mercado Pago / Reserva) e Investimentos.
-  - Gráfico Donut de rebalanceamento comparando a distribuição patrimonial real versus a meta desejada.
-  - Comparador de rendimento dos Cofrinhos contra a taxa CDI acumulada no período, indicando o ganho real líquido sobre a inflação.
+- [x] **8.4. Alocação de Ativos & Benchmark CDI dos Cofrinhos (Inspirado no Ghostfolio)**
+  - Tabela e migração Alembic `asset_allocation_targets` com validação de soma exata de 100.00% entre Caixa, Cofrinhos e Investimentos.
+  - Cálculo de rebalanceamento contábil com status (`BALANCED`, `UNDERWEIGHT`, `OVERWEIGHT`) e montantes sugeridos para aporte ou desalocação.
+  - Benchmark de rentabilidade dos Cofrinhos contra a taxa CDI anual (default 11.25% a.a.): rendimento diário, mensal, anual projetado, comparação com a caderneta de poupança (ganho extra anual) e taxa real acima do IPCA.
+  - Componente Angular Standalone `AssetAllocationWidgetComponent` com barras proporcionais de alocação Real vs Alvo, cards de rebalanceamento, comparador CDI e modal para ajuste fino de metas.
 
 **Critério de Conclusão da Fase 8:**  
-Previsão de saldo a 30 dias funcional no gráfico; métrica de valor diário livre visível no dashboard; upload de fotos de comprovantes salvando no Cloudflare R2 e abrindo no extrato; comparador de rendimento dos cofrinhos contra o CDI ativo.
+Concluída e validada. Previsão de saldo a 30 dias funcional no gráfico; métrica de valor diário livre visível no dashboard; upload de fotos de comprovantes salvando no Cloudflare R2 e abrindo no extrato; comparador de rendimento dos cofrinhos contra o CDI ativo e alocação alvo com rebalanceamento inteligente.
 
 ---
 

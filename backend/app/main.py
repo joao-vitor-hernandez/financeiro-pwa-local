@@ -10,6 +10,7 @@ from app.core.database import Base, engine
 from app.core.errors import setup_exception_handlers
 from app.routers import (
     accounts,
+    assets,
     attachments,
     auth,
     bills,
@@ -113,6 +114,7 @@ app.include_router(budgets.router, prefix="/api/v1", dependencies=auth_deps)
 app.include_router(goals.router, prefix="/api/v1", dependencies=auth_deps)
 app.include_router(push.router, prefix="/api/v1", dependencies=auth_deps)
 app.include_router(attachments.router, prefix="/api/v1", dependencies=auth_deps)
+app.include_router(assets.router, prefix="/api/v1", dependencies=auth_deps)
 
 
 @app.get("/health", tags=["Health"])

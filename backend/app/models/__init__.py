@@ -1,4 +1,5 @@
 from app.models.account import Account, AccountType
+from app.models.asset_allocation import AssetAllocationTarget
 from app.models.budget import Budget
 from app.models.categorization_rule import CategorizationRule
 from app.models.category import Category, CategoryType
@@ -12,6 +13,7 @@ from app.models.user import User
 __all__ = [
     "Account",
     "AccountType",
+    "AssetAllocationTarget",
     "Budget",
     "Category",
     "CategoryType",

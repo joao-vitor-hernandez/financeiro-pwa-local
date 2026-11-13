@@ -45,6 +45,11 @@ import {
 } from '../models/push-notification.model';
 import { CashFlowForecastResponse } from '../models/forecast.model';
 import { AttachmentListResponse, TransactionAttachment } from '../models/attachment.model';
+import {
+  AssetAllocationSummary,
+  AssetAllocationTarget,
+  AssetAllocationTargetUpdate,
+} from '../models/asset-allocation.model';
 import { OfflineDbService } from './offline-db.service';
 
 @Injectable({
@@ -298,5 +303,17 @@ export class ApiService {
 
   deleteAttachment(attachmentId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/attachments/${attachmentId}`);
+  }
+
+  // --- Alocação de Ativos & Benchmark CDI (Fase 8.4 - Ghostfolio) ---
+
+  getAssetAllocation(): Observable<AssetAllocationSummary> {
+    return this.http.get<AssetAllocationSummary>(`${this.apiUrl}/assets/allocation`);
+  }
+
+  updateAssetAllocationTargets(
+    data: AssetAllocationTargetUpdate
+  ): Observable<AssetAllocationTarget> {
+    return this.http.put<AssetAllocationTarget>(`${this.apiUrl}/assets/allocation/targets`, data);
   }
 }
