@@ -85,6 +85,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
             class="numpad-btn backspace-btn"
             (click)="backspace()"
             [disabled]="isSubmitting() || currentPin().length === 0"
+            aria-label="Apagar dígito do PIN"
             title="Apagar"
           >
             <app-icon name="backspace" [size]="20" />
@@ -159,7 +160,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       .user-badge {
         margin-top: 6px;
         font-size: 12px;
-        color: var(--text-muted);
+        color: var(--text-secondary);
         background-color: var(--bg-surface);
         padding: 4px 10px;
         border-radius: var(--radius-full);

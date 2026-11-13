@@ -15,6 +15,8 @@ import { Component, input } from '@angular/core';
       stroke-linecap="round"
       stroke-linejoin="round"
       class="icon-svg"
+      aria-hidden="true"
+      focusable="false"
     >
       @switch (name()) {
         @case ('wallet') {

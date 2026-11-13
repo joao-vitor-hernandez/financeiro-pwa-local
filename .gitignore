@@ -109,3 +109,4 @@ logs/
 # 7. Ferramentas de Análise Local & Antigravity
 # ------------------------------------------------------------------------------
 graphify-out/
+*lighthouse-report.json

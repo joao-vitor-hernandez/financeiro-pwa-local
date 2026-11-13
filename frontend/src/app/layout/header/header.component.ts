@@ -29,6 +29,7 @@ import { PushModalComponent } from '../../shared/components/push-modal/push-moda
             class="btn btn-ghost outbox-sync-btn"
             [class.rotating]="outboxSync.isSyncing()"
             (click)="outboxSync.syncPending()"
+            aria-label="Sincronizar lançamentos da fila offline"
             [title]="outboxSync.pendingCount() + ' lançamento(s) na fila offline. Clique para sincronizar agora.'"
           >
             <app-icon name="repeat" [size]="16" />
@@ -40,6 +41,7 @@ import { PushModalComponent } from '../../shared/components/push-modal/push-moda
         <button
           class="btn btn-ghost btn-icon push-btn"
           (click)="isPushModalOpen.set(true)"
+          aria-label="Gerenciar alertas e notificações Web Push"
           title="Alertas & Notificações Web Push de Vencimentos"
         >
           <app-icon name="bell" [size]="18" />
@@ -53,6 +55,7 @@ import { PushModalComponent } from '../../shared/components/push-modal/push-moda
           class="btn btn-ghost btn-icon"
           [class.rotating]="isSyncing()"
           (click)="triggerSync()"
+          aria-label="Sincronizar contas do Open Finance"
           title="Sincronizar Open Finance"
         >
           <app-icon name="refresh" [size]="18" />
@@ -62,6 +65,7 @@ import { PushModalComponent } from '../../shared/components/push-modal/push-moda
         <button
           class="btn btn-ghost btn-icon privacy-btn"
           (click)="privacy.toggle()"
+          [attr.aria-label]="privacy.isPrivate() ? 'Mostrar valores monetários' : 'Ocultar valores monetários'"
           [title]="privacy.isPrivate() ? 'Mostrar valores' : 'Ocultar valores'"
         >
           <app-icon [name]="privacy.isPrivate() ? 'eye-off' : 'eye'" [size]="20" />
@@ -71,6 +75,7 @@ import { PushModalComponent } from '../../shared/components/push-modal/push-moda
         <button
           class="btn btn-ghost btn-icon"
           (click)="auth.logout()"
+          aria-label="Bloquear sessão do aplicativo"
           title="Bloquear aplicativo"
         >
           <app-icon name="lock" [size]="18" />

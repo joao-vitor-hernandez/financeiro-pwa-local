@@ -28,7 +28,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
                 </span>
               }
             </div>
-            <button class="btn btn-ghost btn-icon close-btn" (click)="close()">
+            <button class="btn btn-ghost btn-icon close-btn" (click)="close()" aria-label="Fechar gaveta de lançamento">
               <app-icon name="x" [size]="20" />
             </button>
           </header>

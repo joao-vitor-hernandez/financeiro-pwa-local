@@ -196,10 +196,10 @@ import { Account } from '../../../core/models/account.model';
                   </button>
 
                   <div class="aux-actions">
-                    <button class="btn-icon-subtle" (click)="openEditModal(goal)" title="Editar meta">
+                    <button class="btn-icon-subtle" (click)="openEditModal(goal)" aria-label="Editar meta financeira" title="Editar meta">
                       <app-icon name="credit-card" [size]="13" />
                     </button>
-                    <button class="btn-icon-subtle delete-action" (click)="requestDelete(goal.id)" title="Excluir meta">
+                    <button class="btn-icon-subtle delete-action" (click)="requestDelete(goal.id)" aria-label="Excluir meta financeira" title="Excluir meta">
                       <app-icon name="plus" [size]="13" class="rotate-45" />
                     </button>
                   </div>
@@ -218,7 +218,7 @@ import { Account } from '../../../core/models/account.model';
               <h3 class="modal-title">
                 {{ editingGoal() ? 'Editar Meta Financeira' : 'Cadastrar Nova Meta' }}
               </h3>
-              <button class="btn-icon-subtle" (click)="closeGoalModal()">
+              <button class="btn-icon-subtle" (click)="closeGoalModal()" aria-label="Fechar modal de meta" title="Fechar">
                 <app-icon name="plus" [size]="16" class="rotate-45" />
               </button>
             </div>
@@ -338,7 +338,7 @@ import { Account } from '../../../core/models/account.model';
                 <h3 class="modal-title">Lançar Aporte na Meta</h3>
                 <span class="modal-subtitle">{{ activeGoalForContribution()?.name }}</span>
               </div>
-              <button class="btn-icon-subtle" (click)="closeContributeModal()">
+              <button class="btn-icon-subtle" (click)="closeContributeModal()" aria-label="Fechar modal de aporte" title="Fechar">
                 <app-icon name="plus" [size]="16" class="rotate-45" />
               </button>
             </div>

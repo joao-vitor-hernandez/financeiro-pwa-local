@@ -204,10 +204,10 @@ import { Category } from '../../../core/models/category.model';
                   </span>
 
                   <div class="card-actions">
-                    <button class="btn-icon-subtle" (click)="openEditModal(item)" title="Ajustar limite">
+                    <button class="btn-icon-subtle" (click)="openEditModal(item)" aria-label="Ajustar limite de orçamento" title="Ajustar limite">
                       <app-icon name="credit-card" [size]="13" />
                     </button>
-                    <button class="btn-icon-subtle delete-action" (click)="requestDelete(item.id)" title="Remover orçamento">
+                    <button class="btn-icon-subtle delete-action" (click)="requestDelete(item.id)" aria-label="Remover teto de orçamento" title="Remover orçamento">
                       <app-icon name="plus" [size]="13" class="rotate-45" />
                     </button>
                   </div>
@@ -226,7 +226,7 @@ import { Category } from '../../../core/models/category.model';
               <h3 class="modal-title">
                 {{ editingBudget() ? 'Ajustar Limite de Gastos' : 'Novo Teto de Orçamento' }}
               </h3>
-              <button class="btn-icon-subtle" (click)="closeModal()">
+              <button class="btn-icon-subtle" (click)="closeModal()" aria-label="Fechar modal de orçamento" title="Fechar">
                 <app-icon name="plus" [size]="16" class="rotate-45" />
               </button>
             </div>
@@ -282,7 +282,7 @@ import { Category } from '../../../core/models/category.model';
           <div class="modal-dialog" (click)="$event.stopPropagation()">
             <div class="modal-header">
               <h3 class="modal-title">Replicar Orçamentos do Mês Anterior</h3>
-              <button class="btn-icon-subtle" (click)="closeCopyModal()">
+              <button class="btn-icon-subtle" (click)="closeCopyModal()" aria-label="Fechar modal de replicação" title="Fechar">
                 <app-icon name="plus" [size]="16" class="rotate-45" />
               </button>
             </div>

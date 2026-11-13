@@ -22,7 +22,7 @@ import { IconComponent } from '../icon/icon.component';
                 <span class="modal-subtitle">Notificações nativas PWA com alta prioridade</span>
               </div>
             </div>
-            <button class="btn-close" (click)="close.emit()" title="Fechar">
+            <button class="btn-close" (click)="close.emit()" aria-label="Fechar modal de notificações" title="Fechar">
               <app-icon name="x" [size]="16" />
             </button>
           </div>

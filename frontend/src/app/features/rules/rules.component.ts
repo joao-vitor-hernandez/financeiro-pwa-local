@@ -248,6 +248,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
                   <button
                     class="btn-icon-subtle"
                     (click)="openEditModal(rule)"
+                    aria-label="Editar regra de categorização"
                     title="Editar regra"
                   >
                     <app-icon name="edit" [size]="14" />
@@ -257,6 +258,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
                   <button
                     class="btn-icon-subtle text-danger"
                     (click)="requestDeleteRule(rule.id)"
+                    aria-label="Excluir regra de categorização"
                     title="Excluir regra"
                   >
                     <app-icon name="trash" [size]="14" />
@@ -276,7 +278,7 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
               <h3 class="modal-title">
                 {{ editingRule() ? 'Editar Regra de Categorização' : 'Nova Regra de Categorização' }}
               </h3>
-              <button class="btn-close" (click)="closeModal()">
+              <button class="btn-close" (click)="closeModal()" aria-label="Fechar modal de regra" title="Fechar">
                 <app-icon name="x" [size]="16" />
               </button>
             </div>

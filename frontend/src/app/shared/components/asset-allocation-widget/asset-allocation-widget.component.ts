@@ -247,7 +247,7 @@ import {
                   Defina os percentuais ideais entre classes e a taxa de referência do CDI
                 </p>
               </div>
-              <button class="btn-close" (click)="closeEditModal()" title="Fechar">
+              <button class="btn-close" (click)="closeEditModal()" aria-label="Fechar modal de metas" title="Fechar">
                 <app-icon name="x" [size]="18" />
               </button>
             </div>

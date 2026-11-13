@@ -19,7 +19,12 @@ import { IconComponent } from '../../shared/components/icon/icon.component';
       </a>
 
       <!-- Botão Central Flutuante para Lançamento Rápido -->
-      <button class="fab-quick-add" (click)="openQuickAdd.emit()" title="Novo Lançamento">
+      <button
+        class="fab-quick-add"
+        (click)="openQuickAdd.emit()"
+        aria-label="Novo Lançamento Financeiro"
+        title="Novo Lançamento"
+      >
         <app-icon name="plus" [size]="24" />
       </button>
 

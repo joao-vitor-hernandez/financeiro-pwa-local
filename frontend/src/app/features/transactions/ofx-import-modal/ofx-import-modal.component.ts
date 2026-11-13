@@ -39,7 +39,7 @@ import { IconComponent } from '../../../shared/components/icon/icon.component';
                 </p>
               </div>
             </div>
-            <button class="close-btn" (click)="onClose()" title="Fechar">
+            <button class="close-btn" (click)="onClose()" aria-label="Fechar modal de importação OFX" title="Fechar">
               <app-icon name="x" [size]="18" />
             </button>
           </header>

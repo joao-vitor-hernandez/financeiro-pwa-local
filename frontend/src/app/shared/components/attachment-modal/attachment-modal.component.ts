@@ -35,7 +35,7 @@ import { IconComponent } from '../icon/icon.component';
                 <span class="tabular-nums">{{ transaction()?.amount | privacyCurrency }}</span>
               </span>
             </div>
-            <button class="btn-close" (click)="close()" title="Fechar">
+            <button class="btn-close" (click)="close()" aria-label="Fechar modal de comprovantes" title="Fechar">
               <app-icon name="x" [size]="18" />
             </button>
           </div>
