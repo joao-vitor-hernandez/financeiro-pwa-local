@@ -43,6 +43,8 @@ import {
   PushTestResponse,
   VapidPublicKeyResponse,
 } from '../models/push-notification.model';
+import { CashFlowForecastResponse } from '../models/forecast.model';
+import { AttachmentListResponse, TransactionAttachment } from '../models/attachment.model';
 import { OfflineDbService } from './offline-db.service';
 
 @Injectable({
@@ -161,6 +163,14 @@ export class ApiService {
     return this.http.get<SavingsEvolutionResponse>(`${this.apiUrl}/dashboard/savings-evolution`, { params });
   }
 
+  // --- Inteligência Preditiva & Projeção de Caixa (Fase 8.1 & 8.2) ---
+
+  getCashFlowForecast(refDate?: string): Observable<CashFlowForecastResponse> {
+    let params = new HttpParams();
+    if (refDate) params = params.set('ref_date', refDate);
+    return this.http.get<CashFlowForecastResponse>(`${this.apiUrl}/dashboard/forecast`, { params });
+  }
+
   // --- Orçamentos Mensais (Budgeting - Fase 7.1) ---
 
   getBudgets(month?: number, year?: number): Observable<BudgetSummaryResponse> {
@@ -267,5 +277,26 @@ export class ApiService {
       `${this.apiUrl}/push/trigger-due-check`,
       {}
     );
+  }
+
+  // --- Anexos e Comprovantes (Fase 8.3 - Firefly III) ---
+
+  uploadAttachment(transactionId: string, file: File): Observable<TransactionAttachment> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<TransactionAttachment>(
+      `${this.apiUrl}/transactions/${transactionId}/attachments`,
+      formData
+    );
+  }
+
+  getTransactionAttachments(transactionId: string): Observable<AttachmentListResponse> {
+    return this.http.get<AttachmentListResponse>(
+      `${this.apiUrl}/transactions/${transactionId}/attachments`
+    );
+  }
+
+  deleteAttachment(attachmentId: string): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/attachments/${attachmentId}`);
   }
 }

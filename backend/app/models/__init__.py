@@ -6,6 +6,7 @@ from app.models.credit_card_bill import BillStatus, CreditCardBill
 from app.models.financial_goal import FinancialGoal, GoalContribution, GoalStatus
 from app.models.push_subscription import PushSubscription
 from app.models.transaction import Transaction, TransactionType
+from app.models.transaction_attachment import TransactionAttachment
 from app.models.user import User
 
 __all__ = [
@@ -22,6 +23,7 @@ __all__ = [
     "PushSubscription",
     "Transaction",
     "TransactionType",
+    "TransactionAttachment",
     "CategorizationRule",
     "User",
 ]

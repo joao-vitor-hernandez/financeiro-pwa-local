@@ -4,11 +4,13 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
+from app.schemas.forecast import CashFlowForecastResponse
 from app.schemas.summary import (
     CardExpensesResponse,
     DashboardSummary,
     SavingsEvolutionResponse,
 )
+from app.services.forecast_service import calculate_cash_flow_forecast
 from app.services.summary_service import (
     get_card_expenses_by_category,
     get_dashboard_summary,
@@ -54,4 +56,15 @@ async def get_savings_growth(
     """
     target_date = ref_date or datetime.now(UTC)
     return await get_savings_evolution(session=db, reference_date=target_date, months_count=months)
+
+
+@router.get("/forecast", response_model=CashFlowForecastResponse)
+async def get_forecast(ref_date: datetime | None = Query(None), db: AsyncSession = Depends(get_db)):
+    """
+    Retorna a previsão de fluxo de caixa preditiva para 30 dias (Cash Flow Forecast - Fase 8.1)
+    e o indicador contábil 'Livre para Gastar por Dia' (Safe to Spend - Fase 8.2).
+    """
+    target_date = ref_date or datetime.now(UTC)
+    return await calculate_cash_flow_forecast(session=db, reference_date=target_date)
+
 

@@ -6,6 +6,7 @@ from typing import Any
 from pydantic import BaseModel, ConfigDict, Field, condecimal
 
 from app.models.transaction import TransactionType
+from app.schemas.attachment import AttachmentResponse
 
 PositiveMoneyDecimal = condecimal(gt=Decimal("0.00"), max_digits=15, decimal_places=2)
 
@@ -54,6 +55,9 @@ class TransactionResponse(TransactionBase):
     # Conectores Bancários / OFX
     fitid: str | None = None
     import_batch_id: uuid.UUID | None = None
+
+    # Anexos e Comprovantes (Fase 8.3)
+    attachments: list[AttachmentResponse] = []
 
     created_at: datetime
     updated_at: datetime

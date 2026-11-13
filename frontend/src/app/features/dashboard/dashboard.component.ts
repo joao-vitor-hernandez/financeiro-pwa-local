@@ -9,6 +9,7 @@ import { CardExpensesResponse, CategoryExpenseSegment } from '../../core/models/
 import { SavingsEvolutionResponse, SavingsPoint } from '../../core/models/savings-evolution.model';
 import { BudgetSummaryResponse } from '../../core/models/budget.model';
 import { FinancialGoalSummaryResponse, FinancialGoalCreate, FinancialGoalUpdate, GoalContributionCreate } from '../../core/models/goal.model';
+import { CashFlowForecastResponse } from '../../core/models/forecast.model';
 import { Category } from '../../core/models/category.model';
 import { Account } from '../../core/models/account.model';
 import { PrivacyCurrencyPipe } from '../../core/pipes/privacy-currency.pipe';
@@ -17,6 +18,7 @@ import { DonutChartComponent } from '../../shared/components/donut-chart/donut-c
 import { SavingsEvolutionChartComponent } from '../../shared/components/savings-evolution-chart/savings-evolution-chart.component';
 import { CategoryBudgetsWidgetComponent } from '../../shared/components/category-budgets-widget/category-budgets-widget.component';
 import { FinancialGoalsWidgetComponent } from '../../shared/components/financial-goals-widget/financial-goals-widget.component';
+import { CashFlowForecastWidgetComponent } from '../../shared/components/cash-flow-forecast-widget/cash-flow-forecast-widget.component';
 
 @Component({
   selector: 'app-dashboard',
@@ -30,6 +32,7 @@ import { FinancialGoalsWidgetComponent } from '../../shared/components/financial
     SavingsEvolutionChartComponent,
     CategoryBudgetsWidgetComponent,
     FinancialGoalsWidgetComponent,
+    CashFlowForecastWidgetComponent,
   ],
   template: `
     <div class="dashboard-page">
@@ -119,6 +122,14 @@ import { FinancialGoalsWidgetComponent } from '../../shared/components/financial
             </span>
           </div>
         </div>
+      </section>
+
+      <!-- Inteligência Preditiva: Previsão a 30 Dias e Livre para Gastar (Fase 8.1 & 8.2) -->
+      <section class="forecast-section">
+        <app-cash-flow-forecast-widget
+          [forecast]="forecast()"
+          [isLoading]="isForecastLoading()"
+        />
       </section>
 
       <!-- Painel de Crescimento Patrimonial: Dinheiro Guardado (Conta Parado, Cofrinhos, Investido) -->
@@ -816,6 +827,10 @@ export class DashboardComponent implements OnInit {
   accounts = signal<Account[]>([]);
   isGoalsLoading = signal<boolean>(true);
 
+  // Inteligência Preditiva & Caixa (Fase 8.1 & 8.2)
+  forecast = signal<CashFlowForecastResponse | null>(null);
+  isForecastLoading = signal<boolean>(true);
+
   isZeroSavings = computed(() => {
     const pts = this.savingsPoints();
     if (!pts || pts.length === 0) return true;
@@ -833,6 +848,17 @@ export class DashboardComponent implements OnInit {
     this.isSavingsLoading.set(true);
     this.isBudgetsLoading.set(true);
     this.isGoalsLoading.set(true);
+    this.isForecastLoading.set(true);
+
+    this.api.getCashFlowForecast().subscribe({
+      next: (fc) => {
+        this.forecast.set(fc);
+        this.isForecastLoading.set(false);
+      },
+      error: () => {
+        this.isForecastLoading.set(false);
+      },
+    });
 
     this.api.getDashboardSummary().subscribe({
       next: (data) => {

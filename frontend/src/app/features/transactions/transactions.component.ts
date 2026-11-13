@@ -5,6 +5,7 @@ import { ApiService } from '../../core/services/api.service';
 import { FinanceSyncService } from '../../core/services/finance-sync.service';
 import { OFXImportResponse, Transaction } from '../../core/models/transaction.model';
 import { OfxImportModalComponent } from './ofx-import-modal/ofx-import-modal.component';
+import { AttachmentModalComponent } from '../../shared/components/attachment-modal/attachment-modal.component';
 import { Account } from '../../core/models/account.model';
 import { Category } from '../../core/models/category.model';
 import { PrivacyCurrencyPipe } from '../../core/pipes/privacy-currency.pipe';
@@ -15,7 +16,14 @@ type FilterType = 'ALL' | 'EXPENSE' | 'INCOME' | 'TRANSFER';
 @Component({
   selector: 'app-transactions',
   standalone: true,
-  imports: [CommonModule, FormsModule, PrivacyCurrencyPipe, IconComponent, OfxImportModalComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    PrivacyCurrencyPipe,
+    IconComponent,
+    OfxImportModalComponent,
+    AttachmentModalComponent,
+  ],
   template: `
     <div class="transactions-page">
       <header class="page-header">
@@ -154,12 +162,27 @@ type FilterType = 'ALL' | 'EXPENSE' | 'INCOME' | 'TRANSFER';
                       </div>
                     </div>
 
-                    <div
-                      class="tx-value currency-val"
-                      [class.text-income]="tx.type === 'INCOME'"
-                      [class.text-muted]="tx.is_transfer"
-                    >
-                      {{ tx.type === 'INCOME' ? '+' : '-' }}{{ tx.amount | privacyCurrency }}
+                    <div class="tx-right-wrap">
+                      <div
+                        class="tx-value currency-val"
+                        [class.text-income]="tx.type === 'INCOME'"
+                        [class.text-muted]="tx.is_transfer"
+                      >
+                        {{ tx.type === 'INCOME' ? '+' : '-' }}{{ tx.amount | privacyCurrency }}
+                      </div>
+
+                      <button
+                        type="button"
+                        class="btn-attachment-toggle"
+                        [class.has-attachments]="tx.attachments && tx.attachments.length > 0"
+                        (click)="openAttachmentModal(tx)"
+                        [title]="tx.attachments?.length ? 'Ver comprovantes (' + tx.attachments.length + ')' : 'Anexar comprovante'"
+                      >
+                        <app-icon name="paperclip" [size]="14" />
+                        @if (tx.attachments && tx.attachments.length > 0) {
+                          <span class="attachment-count">{{ tx.attachments.length }}</span>
+                        }
+                      </button>
                     </div>
                   </div>
                 }
@@ -175,6 +198,14 @@ type FilterType = 'ALL' | 'EXPENSE' | 'INCOME' | 'TRANSFER';
         [accounts]="accounts()"
         (closed)="isImportModalOpen.set(false)"
         (imported)="onImportSuccess($event)"
+      />
+
+      <!-- Modal de Comprovantes & Notas Fiscais (Fase 8.3) -->
+      <app-attachment-modal
+        [isOpen]="isAttachmentModalOpen()"
+        [transaction]="selectedTransactionForAttachment()"
+        (onClose)="isAttachmentModalOpen.set(false)"
+        (onAttachmentChanged)="onAttachmentChanged()"
       />
     </div>
   `,
@@ -431,7 +462,44 @@ type FilterType = 'ALL' | 'EXPENSE' | 'INCOME' | 'TRANSFER';
       font-size: 15px;
       font-weight: 600;
       white-space: nowrap;
+    }
+
+    .tx-right-wrap {
+      display: flex;
+      align-items: center;
+      gap: 10px;
       margin-left: 12px;
+      flex-shrink: 0;
+    }
+
+    .btn-attachment-toggle {
+      background: none;
+      border: 1px solid transparent;
+      color: #71717a;
+      cursor: pointer;
+      padding: 6px;
+      border-radius: 6px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      transition: all 0.15s ease;
+
+      &:hover {
+        background: #27272a;
+        color: #fafafa;
+        border-color: #3f3f46;
+      }
+
+      &.has-attachments {
+        color: #38bdf8;
+        background: rgba(56, 189, 248, 0.1);
+        border-color: rgba(56, 189, 248, 0.25);
+      }
+
+      .attachment-count {
+        font-size: 10px;
+        font-weight: 700;
+      }
     }
 
     .text-income {
@@ -501,6 +569,17 @@ export class TransactionsComponent implements OnInit {
   private syncService = inject(FinanceSyncService);
 
   isImportModalOpen = signal<boolean>(false);
+  isAttachmentModalOpen = signal<boolean>(false);
+  selectedTransactionForAttachment = signal<Transaction | null>(null);
+
+  openAttachmentModal(tx: Transaction): void {
+    this.selectedTransactionForAttachment.set(tx);
+    this.isAttachmentModalOpen.set(true);
+  }
+
+  onAttachmentChanged(): void {
+    this.loadData();
+  }
 
   onImportSuccess(res: OFXImportResponse): void {
     this.loadData();

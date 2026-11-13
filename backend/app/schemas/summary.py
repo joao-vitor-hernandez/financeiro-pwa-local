@@ -20,6 +20,11 @@ class DashboardSummary(BaseModel):
     monthly_expenses: Decimal  # Saídas do mês corrente (excluindo transferências neutras)
     monthly_result: Decimal  # Resultado do mês (Receitas - Despesas)
 
+    # Indicadores Preditivos (Fase 8.2 - Safe to Spend / Actual Budget)
+    safe_to_spend_daily: Decimal = Decimal("0.00")  # Limite livre seguro para gastar hoje por dia
+    safe_to_spend_status: str = "HEALTHY"  # HEALTHY | CAUTION | CRITICAL
+    safe_to_spend_days_remaining: int = 0  # Dias restantes no ciclo do mês corrente
+
 
 class CategoryExpenseSegment(BaseModel):
     label: str

@@ -1,3 +1,5 @@
+import { TransactionAttachment } from './attachment.model';
+
 export type TransactionType = 'INCOME' | 'EXPENSE';
 
 export interface Transaction {
@@ -19,6 +21,7 @@ export interface Transaction {
   external_id?: string | null;
   fitid?: string | null;
   import_batch_id?: string | null;
+  attachments?: TransactionAttachment[];
   created_at: string;
 }
 

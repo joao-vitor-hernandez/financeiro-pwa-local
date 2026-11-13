@@ -4,7 +4,13 @@ import enum
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from app.models.account import Account
+    from app.models.category import Category
+    from app.models.credit_card_bill import CreditCardBill
+    from app.models.transaction_attachment import TransactionAttachment
 
 from sqlalchemy import (
     Boolean,
@@ -108,6 +114,9 @@ class Transaction(Base):
     category: Mapped[Category | None] = relationship("Category", back_populates="transactions")
     bill: Mapped[CreditCardBill | None] = relationship(
         "CreditCardBill", back_populates="transactions"
+    )
+    attachments: Mapped[list[TransactionAttachment]] = relationship(
+        "TransactionAttachment", back_populates="transaction", cascade="all, delete-orphan", lazy="selectin"
     )
 
     # Restrição única para idempotência com Open Finance

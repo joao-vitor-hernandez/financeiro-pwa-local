@@ -7,4 +7,7 @@ export interface DashboardSummary {
   monthly_income: string;
   monthly_expenses: string;
   monthly_result: string;
+  safe_to_spend_daily?: string;
+  safe_to_spend_status?: 'HEALTHY' | 'CAUTION' | 'CRITICAL';
+  safe_to_spend_days_remaining?: number;
 }

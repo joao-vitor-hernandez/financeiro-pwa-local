@@ -249,24 +249,67 @@ Orçamentos com barras de progresso ativos no dashboard; metas cadastradas e mon
 
 ---
 
-## Fase 8: Inteligência Preditiva & Gestão Patrimonial Avançada (Inspirada no Open-Source)
+## 📌 Checklist Prático: Ativação das APIs Oficiais (Mercado Pago & Banco Inter)
+> [!important] Pendência de Credenciais do Usuário (Para ativação futura)
+> O código e os clientes HTTP assíncronos (`mercadopago_client.py` e `inter_client.py` com mTLS) já estão estruturados e commitados no backend. Quando for conectar suas contas reais, siga este checklist para obter as chaves e tokens:
+>
+> ### 1. Conexão Oficial Mercado Pago
+> - [ ] **1.1. Portal de Desenvolvedores:** Acessar [mercadopago.com.br/developers](https://www.mercadopago.com.br/developers) logado na sua conta Mercado Pago.
+> - [ ] **1.2. Criar Aplicação:** Acessar "Suas Integrações" $\rightarrow$ "Criar Aplicação" (Tipo: *Pagamentos e Gestão de Conta*).
+> - [ ] **1.3. Obter Chaves de Produção:**
+>   - Copiar o **Access Token** de produção (`APP_USR-...`).
+>   - Copiar o **User ID** da sua conta (disponível no cabeçalho ou perfil da conta).
+> - [ ] **1.4. Preencher `.env`:**
+>   ```env
+>   MERCADOPAGO_ACCESS_TOKEN=APP_USR-seu_token_aqui
+>   MERCADOPAGO_USER_ID=seu_user_id_aqui
+>   ```
+> - [ ] **1.5. Configurar Webhooks de Tempo Real (Opcional/Recomendado):**
+>   - No painel do Mercado Pago, cadastrar a URL de notificação: `https://api-fin.entrefilas.com.br/api/v1/webhooks/mercadopago`.
+>   - Selecionar eventos de movimentação de conta e pagamentos.
+>
+> ### 2. Conexão Oficial Banco Inter (mTLS & Certificados)
+> - [ ] **2.1. Portal de Desenvolvedores Inter:** Acessar [developers.inter.co](https://developers.inter.co) ou pelo Internet Banking PJ em **Gestão de APIs / Integrações**.
+> - [ ] **2.2. Criar Aplicação Banking:**
+>   - Criar uma nova aplicação selecionando os escopos: **Extrato** (`extrato.read`) e **Saldo** (`saldo.read`).
+> - [ ] **2.3. Emissão de Certificados Digitais mTLS:**
+>   - Gerar o par de certificados mTLS na própria plataforma do Inter.
+>   - Baixar o certificado público (`.crt`) e a chave privada (`.key`).
+>   - **Segurança:** Salvar os arquivos em pasta protegida no servidor Homelab com permissões restritas (`chmod 600`), ex: `/home/usuario/certs/inter_cert.crt` e `/home/usuario/certs/inter_key.key`.
+>   - **Atenção:** Nunca commitar arquivos `.key` e `.crt` no Git (já bloqueados pelo `.gitignore`).
+> - [ ] **2.4. Obter Client ID e Client Secret:**
+>   - Copiar o `Client ID` e o `Client Secret` gerados no painel.
+> - [ ] **2.5. Preencher `.env`:**
+>   ```env
+>   INTER_CLIENT_ID=seu_client_id_aqui
+>   INTER_CLIENT_SECRET=seu_client_secret_aqui
+>   INTER_CERT_PATH=/caminho/seguro/inter_cert.crt
+>   INTER_KEY_PATH=/caminho/seguro/inter_key.key
+>   INTER_BASE_URL=https://cdpj.partners.bancointer.com.br
+>   ```
+> - [ ] **2.6. Teste de Autenticação OAuth2:**
+>   - Validar endpoint de geração de token e chamada de extrato do backend.
+>
+> ---
+
+## Fase 8: Inteligência Preditiva & Gestão Patrimonial Avançada (Inspirada no Open-Source) *(Em Execução)*
 > **Objetivo:** Incorporar as melhores práticas arquiteturais consolidadas por Actual Budget, Firefly III e Ghostfolio, trazendo previsibilidade de fluxo de caixa, limite diário de gastos, anexos de recibos no Cloudflare R2 e benchmarks de rentabilidade.
 
-- [ ] **8.1. Previsão de Saldo a 30 Dias (*Cash Flow Forecast* - Inspirado no Firefly III)**
+- [x] **8.1. Previsão de Saldo a 30 Dias (*Cash Flow Forecast* - Inspirado no Firefly III)**
   - Algoritmo de projeção preditiva no backend: `Saldo Atual + Receitas Previstas - Faturas de Cartão Abertas - Despesas Fixas Recorrentes`.
   - Curva pontilhada de projeção futura no gráfico de evolução patrimonial para os próximos 30 dias.
   - Indicador de saldo estimado para o último dia do mês corrente, emitindo alertas proativos se houver risco de saldo negativo antes do fechamento.
 
-- [ ] **8.2. Indicador "Livre para Gastar por Dia" (*Safe to Spend* - Inspirado no Actual Budget)**
+- [x] **8.2. Indicador "Livre para Gastar por Dia" (*Safe to Spend* - Inspirado no Actual Budget)**
   - Cálculo dinâmico contábil: `(Saldo Disponível - Contas e Faturas a Vencer até o fim do mês) / Dias Restantes no Mês`.
   - Métrica executiva de alto impacto visual no topo do dashboard (ex: *"R$ 48,00 / dia livre para gastar"*).
   - Atualização automática em tempo real a cada lançamento de despesa, pagamento de fatura ou entrada de receita.
 
-- [ ] **8.3. Anexo de Comprovantes & Notas Fiscais via Cloudflare R2 (Inspirado no Firefly III)**
+- [x] **8.3. Anexo de Comprovantes & Notas Fiscais via Cloudflare R2 (Inspirado no Firefly III)**
   - Tabela `transaction_attachments` vinculando arquivos de imagem (PNG, JPG, WebP) e documentos (PDF) a lançamentos contábeis.
-  - Upload direto do smartphone no modal de lançamento rápido (*Quick Add*), aproveitando a câmera do celular.
-  - Armazenamento no bucket Cloudflare R2 via URLs pré-assinadas com criptografia de ponta a ponta e zero custo de tráfego de saída (*zero egress fees*).
-  - Visualizador de recibos e comprovantes integrado ao Extrato Inteligente.
+  - Upload direto do smartphone e extrato, aproveitando a câmera do celular (`capture="environment"`).
+  - Armazenamento no bucket Cloudflare R2 via URLs pré-assinadas com zero custo de tráfego de saída (*zero egress fees*) e fallback automático local.
+  - Visualizador de recibos e comprovantes integrado ao Extrato Inteligente (`AttachmentModalComponent`).
 
 - [ ] **8.4. Alocação de Ativos & Benchmark CDI dos Cofrinhos (Inspirado no Ghostfolio)**
   - Definição de alocação patrimonial alvo (*Target Allocation*): percentual ideal entre Dinheiro em Conta, Cofrinhos (Mercado Pago / Reserva) e Investimentos.

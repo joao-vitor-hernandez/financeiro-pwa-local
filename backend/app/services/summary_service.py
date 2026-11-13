@@ -94,6 +94,10 @@ async def get_dashboard_summary(
 
     monthly_result = monthly_income - monthly_expenses
 
+    # 7. Indicador Seguro para Gastar por Dia (Safe to Spend - Fase 8.2)
+    from app.services.forecast_service import calculate_safe_to_spend
+    safe_info = await calculate_safe_to_spend(session=session, reference_date=reference_date)
+
     return DashboardSummary(
         total_checking_balance=total_checking,
         total_investments=total_investments,
@@ -103,6 +107,9 @@ async def get_dashboard_summary(
         monthly_income=monthly_income,
         monthly_expenses=monthly_expenses,
         monthly_result=monthly_result,
+        safe_to_spend_daily=safe_info.daily_amount,
+        safe_to_spend_status=safe_info.status.value,
+        safe_to_spend_days_remaining=safe_info.days_remaining,
     )
 
 

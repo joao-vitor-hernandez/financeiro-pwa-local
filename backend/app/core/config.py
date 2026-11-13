@@ -69,8 +69,10 @@ class Settings(BaseSettings):
     R2_ACCESS_KEY_ID: str | None = None
     R2_SECRET_ACCESS_KEY: str | None = None
     R2_BUCKET_NAME: str = "financeiro-backups"
+    R2_ATTACHMENTS_BUCKET_NAME: str = "financeiro-attachments"
     R2_ENDPOINT_URL: str | None = None
     AGE_PUBLIC_KEY: str | None = None
+    LOCAL_STORAGE_DIR: str = "storage/attachments"
 
     # Cloudflare Tunnel
     CLOUDFLARE_TUNNEL_TOKEN: str | None = None
